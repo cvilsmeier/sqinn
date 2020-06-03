@@ -1,0 +1,322 @@
+#include "util.h"
+#include "mem.h"
+#include "conn.h"
+#include "handler.h"
+
+#define MAX_ERRMSG 128
+
+handler *handler_new() {
+    handler *this = MEM_MALLOC(sizeof(handler));
+    this->con = conn_new();
+    return this;
+}
+
+void handler_free(handler *this) {
+    conn_free(this->con);
+    MEM_FREE(this);
+}
+
+void _write_ok_or_err(int err, const char *errmsg, dbuf *resp) {
+    if(!err) {
+        dbuf_write_bool(resp, TRUE);
+    } else {
+        dbuf_write_bool(resp, FALSE);
+        dbuf_write_string(resp, errmsg);
+    }
+}
+
+int _bind_param(conn *con, int iparam, dbuf *req, char *errmsg, int maxerrmsg) {
+    bool col_type = dbuf_read_byte(req);
+    switch (col_type) {
+        case COL_NULL:
+        {
+            return conn_bind_null(con, iparam, errmsg, maxerrmsg);
+        }
+        case COL_INT:
+        {
+            int ival = dbuf_read_int32(req);
+            return conn_bind_int(con, iparam, ival, errmsg, maxerrmsg);
+        }
+        case COL_INT64:
+        {
+            int64 ival = dbuf_read_int64(req);
+            return conn_bind_int64(con, iparam, ival, errmsg, maxerrmsg);
+        }
+        case COL_DOUBLE:
+        {
+            double dval = dbuf_read_double(req);
+            return conn_bind_double(con, iparam, dval, errmsg, maxerrmsg);
+        }
+        case COL_TEXT:
+        {
+            const char *sval = dbuf_read_string(req);
+            return conn_bind_text(con, iparam, sval, errmsg, maxerrmsg);
+        }
+        case COL_BLOB:
+        {
+            int len;
+            const byte *bval = dbuf_read_blob(req, &len);
+            return conn_bind_blob(con, iparam, bval, len, errmsg, maxerrmsg);
+        }
+    }
+    snprintf(errmsg, maxerrmsg, "unknown bind col_type %d", col_type);
+    INFO("%s\n", errmsg);
+    return SQLITE_ERROR;
+}
+
+int _column(conn *con, byte col_type, int icol, dbuf *dest, char *errmsg, int maxerrmsg) {
+    bool set;
+    switch (col_type) {
+        case COL_INT: {
+            int ival;
+            conn_column_int(con, icol, &set, &ival);
+            dbuf_write_bool(dest, set);
+            if (set) {
+                dbuf_write_int32(dest, ival);
+            }
+            return SQLITE_OK;
+        }
+        case COL_INT64: {
+            int64 ival;
+            conn_column_int64(con, icol, &set, &ival);
+            dbuf_write_bool(dest, set);
+            if (set) {
+                dbuf_write_int64(dest, ival);
+            }
+            return SQLITE_OK;
+        }
+        case COL_DOUBLE: {
+            double dval;
+            conn_column_double(con, icol, &set, &dval);
+            dbuf_write_bool(dest, set);
+            if (set) {
+                dbuf_write_double(dest, dval);
+            }
+            return SQLITE_OK;
+        }
+        case COL_TEXT: {
+            const char *sval;
+            conn_column_text(con, icol, &set, &sval);
+            dbuf_write_bool(dest, set);
+            if (set) {
+                dbuf_write_string(dest, sval);
+            }
+            return SQLITE_OK;
+        }
+        case COL_BLOB: {
+            const byte *bval;
+            int len;
+            conn_column_blob(con, icol, &set, &bval, &len);
+            dbuf_write_bool(dest, set);
+            if (set) {
+                dbuf_write_blob(dest, bval, len);
+            }
+            return SQLITE_OK;
+        }
+    }
+    snprintf(errmsg, maxerrmsg, "unknown column col_type %d", col_type);
+    INFO("%s\n", errmsg);
+    return SQLITE_ERROR;
+}
+
+int _fetch_rows(conn *con, dbuf *req, int *nrows, dbuf *vbuf, char *errmsg, int maxerrmsg) {
+    int ncols = dbuf_read_int32(req);
+    byte *col_types = (byte *)MEM_MALLOC(ncols*sizeof(byte));
+    for (int icol=0 ; icol<ncols ; icol++) {
+        col_types[icol] = dbuf_read_byte(req);
+    }
+    bool more = TRUE;
+    int err = SQLITE_OK;
+    *nrows = 0;
+    while (!err && more) {
+        err = conn_step(con, &more, errmsg, maxerrmsg);
+        if (!err && more) {
+            *nrows = *nrows + 1;
+            for (int icol=0 ; !err && icol<ncols ; icol++) {
+                byte col_type = col_types[icol];
+                err = _column(con, col_type, icol, vbuf, errmsg, maxerrmsg);
+            }
+        }
+    }
+    MEM_FREE(col_types);
+    return err;
+}
+
+void handler_handle(handler *this, dbuf *req, dbuf *resp) {
+    char errmsg[MAX_ERRMSG+1];
+    conn *con = this->con;
+    byte fc = dbuf_read_byte(req);
+    switch (fc) {
+        case FC_SQINN_VERSION:
+        {
+            dbuf_write_bool(resp, TRUE);
+            dbuf_write_string(resp, SQINN_VERSION);
+        }
+        break;
+        case FC_IO_VERSION:
+        {
+            dbuf_write_bool(resp, TRUE);
+            dbuf_write_int32(resp, IO_VERSION);
+        }
+        break;
+        case FC_SQLITE_VERSION:
+        {
+            const char *v = conn_version(con);
+            dbuf_write_bool(resp, TRUE);
+            dbuf_write_string(resp, v);
+        }
+        break;
+        case FC_OPEN:
+        {
+            const char *filename = dbuf_read_string(req);
+            int err = conn_open(con, filename, errmsg, MAX_ERRMSG);
+            _write_ok_or_err(err, errmsg, resp);
+        }
+        break;
+        case FC_PREPARE:
+        {
+            const char *sql = dbuf_read_string(req);
+            int err = conn_prepare(con, sql, errmsg, MAX_ERRMSG);
+            _write_ok_or_err(err, errmsg, resp);
+        }
+        break;
+        case FC_BIND:
+        {
+            int iparam = dbuf_read_int32(req);
+            int err = _bind_param(con, iparam, req, errmsg, MAX_ERRMSG);
+            _write_ok_or_err(err, errmsg, resp);
+        }
+        break;
+        case FC_RESET:
+        {
+            int err = conn_reset(con, errmsg, MAX_ERRMSG);
+            _write_ok_or_err(err, errmsg, resp);
+        }
+        break;
+        case FC_CHANGES:
+        {
+            int changes;
+            conn_changes(con, &changes);
+            dbuf_write_bool(resp, TRUE);
+            dbuf_write_int32(resp, changes);
+        }
+        break;
+        case FC_STEP:
+        {
+            bool more;
+            int err = conn_step(con, &more, errmsg, MAX_ERRMSG);
+            _write_ok_or_err(err, errmsg, resp);
+            if(!err) {
+                dbuf_write_bool(resp, more);
+            }
+        }
+        break;
+        case FC_COLUMN:
+        {
+            int icol = dbuf_read_int32(req);
+            byte col_type = dbuf_read_byte(req);
+            dbuf *vbuf = dbuf_new();
+            int err = _column(con, col_type, icol, vbuf, errmsg, MAX_ERRMSG);
+            _write_ok_or_err(err, errmsg, resp);
+            if(!err) {
+                dbuf_write_dbuf(resp, vbuf);
+            }
+            dbuf_free(vbuf);
+        }
+        break;
+        case FC_FINALIZE:
+        {
+            int err = conn_finalize(con, errmsg, MAX_ERRMSG);
+            _write_ok_or_err(err, errmsg, resp);
+        }
+        break;
+        case FC_CLOSE:
+        {
+            int err = conn_close(con, errmsg, MAX_ERRMSG);
+            _write_ok_or_err(err, errmsg, resp);
+        }
+        break;
+        case FC_EXEC:
+        {
+            const char *sql = dbuf_read_string(req);
+            int err = SQLITE_OK;
+            bool prepared = TRUE;
+            if (!err) {
+                err = conn_prepare(con, sql, errmsg, MAX_ERRMSG);
+                if (err) {
+                    prepared = FALSE;
+                }
+            }
+            if (!err) {
+                int niterations = dbuf_read_int32(req);
+                int nparams = dbuf_read_int32(req);
+                for (int iit = 0; !err && iit < niterations; iit++) {
+                    for (int iparam = 1; !err && iparam <= nparams; iparam++) {
+                        err = _bind_param(con, iparam, req, errmsg, MAX_ERRMSG);
+                    }
+                    if (!err) {
+                        err = conn_step(con, NULL, errmsg, MAX_ERRMSG);
+                    }
+                    if (!err) {
+                        if (iit < niterations-1) {
+                            err = conn_reset(con, errmsg, MAX_ERRMSG);
+                        }
+                    }
+                }
+            }
+            if (!err) {
+                err = conn_finalize(con, errmsg, MAX_ERRMSG);
+            } else {
+                if (prepared) {
+                    conn_finalize(con, errmsg, MAX_ERRMSG);
+                }
+            }
+            _write_ok_or_err(err, errmsg, resp);
+        }
+        break;
+        case FC_QUERY:
+        {
+            dbuf *vbuf = dbuf_new();
+            int nrows = 0;
+            int err = SQLITE_OK;
+            bool prepared = TRUE;
+            if (!err) {
+                const char *sql = dbuf_read_string(req);
+                err = conn_prepare(con, sql, errmsg, MAX_ERRMSG);
+                if (err) {
+                    prepared = FALSE;
+                }
+            }
+            if (!err) {
+                int nparams = dbuf_read_int32(req);
+                for (int iparam=1 ; !err && iparam<=nparams ; iparam++) {
+                    err = _bind_param(con, iparam, req, errmsg, MAX_ERRMSG);
+                }
+            }
+            if (!err) {
+                err = _fetch_rows(con, req, &nrows, vbuf, errmsg, MAX_ERRMSG);
+            }
+            if (!err) {
+                err = conn_finalize(con, errmsg, MAX_ERRMSG);
+            } else {
+                if (prepared) {
+                    conn_finalize(con, errmsg, MAX_ERRMSG);
+                }
+            }
+            _write_ok_or_err(err, errmsg, resp);
+            if (!err) {
+                dbuf_write_int32(resp, nrows);
+                dbuf_write_dbuf(resp, vbuf);
+            }
+            dbuf_free(vbuf);
+        }
+        break;
+        default:
+        {
+            snprintf(errmsg, MAX_ERRMSG, "unknown function code %u", fc);
+            dbuf_write_bool(resp, FALSE);
+            dbuf_write_string(resp, errmsg);
+        }
+        break;
+    }
+}
