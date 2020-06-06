@@ -22,7 +22,7 @@ Example:
 For opening a sqlite database file, function code 1 (FC\_OPEN) is used. The
 single argument to FC_\OPEN is the filename. A sample request looks like this:
 
-    [ 0] 0x0A        FC\_OPEN
+    [ 0] 0x0A        FC_OPEN
     [ 1] 0x00        4-byte size of filename plus terminating null
     [ 2] 0x00
     [ 3] 0x00
@@ -167,7 +167,7 @@ This function returns the version of sqinn as a string, e.g. "1.0.0".
 
     Request:
 
-        byte     FC\_SQINN\_VERSION
+        byte     FC_SQINN_VERSION
 
     Response (Success):
 
@@ -183,7 +183,7 @@ version number.
 
     Request:
 
-        byte     FC\_IO\_VERSION
+        byte     FC_IO_VERSION
 
     Response (Success):
 
@@ -198,7 +198,7 @@ This function returns the version of the sqlite library as a string, e.g.
 
     Request:
 
-        byte     FC\_SQLITE\_VERSION
+        byte     FC_SQLITE_VERSION
 
     Response (Success):
 
@@ -212,7 +212,7 @@ This function opens a database.
 
     Request:
 
-        byte     FC\_OPEN
+        byte     FC_OPEN
         string   filename              e.g. "/home/alice/my.db" or ":memory:"
 
     Response (Success):
@@ -226,7 +226,7 @@ This function prepares a statement.
 
     Request:
 
-        byte     FC\_PREPARE
+        byte     FC_PREPARE
         string   sql                   e.g. "SELECT id,name FROM users"
 
     Response (Success):
@@ -240,7 +240,7 @@ This function binds parameter values.
 
     Request:
 
-        byte     FC\_BIND
+        byte     FC_BIND
         int32    iparam                The parameter number (1,2,...)
         byte     value_type            VAL_NULL, VAL_INT, VAL_STRING, ...
         any      value                 any can be an int32, int64, double,
@@ -259,7 +259,7 @@ This advances a prepared statement to its next row or to completion.
 
     Request:
 
-        byte     FC\_STEP
+        byte     FC_STEP
         int32    iparam                The parameter number (1,2,...)
         byte     value_type            VAL_NULL, VAL_INT, VAL_STRING, ...
         any      value                 any can be an int32, int64, double,
@@ -272,7 +272,7 @@ This advances a prepared statement to its next row or to completion.
         bool     true
         bool     more                  true if another row is available. In
                                        that case, column values can be
-                                       fetched with FC\_COLUMN.
+                                       fetched with FC_COLUMN.
 
 
 ### FC\_RESET
@@ -281,7 +281,7 @@ Reset a prepared statement before reusing it.
 
     Request:
 
-        byte     FC\_RESET
+        byte     FC_RESET
 
     Response (Success):
 
@@ -294,7 +294,7 @@ Count the number of rows modified by the last executed statement.
 
     Request:
 
-        byte     FC\_CHANGES
+        byte     FC_CHANGES
 
     Response (Success):
 
@@ -312,9 +312,9 @@ how sqlite does type conversion.
 
     Request:
 
-        byte     FC\_COLUMN
+        byte     FC_COLUMN
         int32    icol                  the column index (0,1,...)
-        byte     val\_type             the type of the column value
+        byte     val_type             the type of the column value
 
     Response (Success):
 
@@ -334,7 +334,7 @@ Finalizes a statement.
 
     Request:
 
-        byte     FC\_FINALIZE
+        byte     FC_FINALIZE
 
     Response (Success):
 
@@ -347,7 +347,7 @@ Closes a database.
 
     Request:
 
-        byte     FC\_CLOSE
+        byte     FC_CLOSE
 
     Response (Success):
 
@@ -360,7 +360,7 @@ Executes a statement, potentially multiple times.
 
     Request:
 
-        byte   FC\_EXEC
+        byte   FC_EXEC
         string sql
         int32  niterations   number of iterations
         int32  nparams       number of bind parameters per iteration
@@ -377,7 +377,7 @@ one function call. Let's make an example. Say you want to insert three users.
 The user table has two columns: `id` and `name`. The request would then look
 like this:
 
-     1: byte   FC\_EXEC
+     1: byte   FC_EXEC
      2: string "INSERT INTO users (id,name) VALUES(?,?)"
      3: int32  3
      4: int32  2
@@ -422,7 +422,7 @@ Execute a query and fetch all row values in one go.
 
     Request:
 
-        byte   FC\_QUERY
+        byte   FC_QUERY
         string sql
         int32  nparams       number of bind parameters
         for 0 to nparams:
@@ -445,7 +445,7 @@ finalize into one function call. Let's make an example. Say you want to query
 all users with id greater than 42. The user table has two columns, an integer
 column `id` and a text column `name`. The request would then look like this:
 
-    1: byte   FC\_QUERY
+    1: byte   FC_QUERY
     2: string "SELECT id,name FROM users WHERE id > ? ORDER BY id"
     3: int32  1
     4: byte   VAL_INT
