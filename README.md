@@ -1,7 +1,9 @@
 SQINN
 ===============================================================================
 
-SQLite over stdin/stdout. 
+Sqinn is an alternative to the SQLite C API. Sqinn reads requests from stdin,
+forwards the request to SQLite, and writes a response to stdout. It is used in
+programming environments that do not allow to call C API functions directly.
 
     !!!
 
@@ -11,28 +13,27 @@ SQLite over stdin/stdout.
 
     !!!
 
-
 [SQLite](https://www.sqlite.org/index.html) is written in C and provides a API
 for using it in C/C++. There are many language bindings. If you cannot or do
 not want to use one of the available language bindings, and your programming
 language allows the creation of subprocesses (fork/exec), an option might be
 to communicate with SQLite over stdin/stdout, using Sqinn.
 
-Sqinn reads requests from stdin, forwards the request to SQLite, and writes a
-response to stdout. The binary IO protocol used for encoding/decoding is
-described in [binary\_protocol.md](binary_protocol.md).
-
 Sqinn provides functions that map to SQLite functions, like `sqlite3_open()`,
 `sqlite3_prepare()`, `sqlite3_column()`, and so on. If you have not read the
 [Introduction to the SQLite C/C++
 Interface](https://www.sqlite.org/cintro.html), now it's a good time. It's a
-5-minute read and shows the basic workings of SQLite.  All of the functions
+5-minute read and shows the basic workings of SQLite. All of the functions
 described that document are provided by Sqinn.
 
 Marshalling every function call and every result value back and forth between
 process boundaries if, of course, horribly slow. To gain performance, Sqinn
 provides functions that lets you call multiple SQLite functions in one
 request/response cycle.
+
+The provided function calls and the binary protocol used for marshalling
+request and response data is described in
+[binary\_protocol.md](binary_protocol.md).
 
 
 Compiling with gcc
