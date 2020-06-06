@@ -92,7 +92,7 @@ void test_handler_functions() {
     dbuf_reset(resp);
     dbuf_write_byte(req, FC_BIND);
     dbuf_write_int32(req, 1);
-    dbuf_write_byte(req, COL_INT);
+    dbuf_write_byte(req, VAL_INT);
     dbuf_write_int32(req, id); // id=1
     handler_handle(hd, req, resp);
     ASSERT0(dbuf_read_bool(resp), "was not ok");
@@ -101,7 +101,7 @@ void test_handler_functions() {
     dbuf_reset(resp);
     dbuf_write_byte(req, FC_BIND);
     dbuf_write_int32(req, 2);
-    dbuf_write_byte(req, COL_TEXT);
+    dbuf_write_byte(req, VAL_TEXT);
     dbuf_write_string(req, name); // name="Alice"
     handler_handle(hd, req, resp);
     ASSERT0(dbuf_read_bool(resp), "was not ok");
@@ -110,7 +110,7 @@ void test_handler_functions() {
     dbuf_reset(resp);
     dbuf_write_byte(req, FC_BIND);
     dbuf_write_int32(req, 3);
-    dbuf_write_byte(req, COL_INT64);
+    dbuf_write_byte(req, VAL_INT64);
     dbuf_write_int64(req, age); // age=2<<62 + 3
     handler_handle(hd, req, resp);
     ASSERT0(dbuf_read_bool(resp), "was not ok");
@@ -119,7 +119,7 @@ void test_handler_functions() {
     dbuf_reset(resp);
     dbuf_write_byte(req, FC_BIND);
     dbuf_write_int32(req, 4);
-    dbuf_write_byte(req, COL_DOUBLE);
+    dbuf_write_byte(req, VAL_DOUBLE);
     dbuf_write_double(req, rating); // rating=13.24
     handler_handle(hd, req, resp);
     ASSERT0(dbuf_read_bool(resp), "was not ok");
@@ -131,7 +131,7 @@ void test_handler_functions() {
     dbuf_reset(resp);
     dbuf_write_byte(req, FC_BIND);
     dbuf_write_int32(req, 5);
-    dbuf_write_byte(req, COL_BLOB);
+    dbuf_write_byte(req, VAL_BLOB);
     dbuf_write_blob(req, image, sizeof(image)); // image blob
     handler_handle(hd, req, resp);
     ASSERT0(dbuf_read_bool(resp), "was not ok");
@@ -183,7 +183,7 @@ void test_handler_functions() {
     dbuf_reset(resp);
     dbuf_write_byte(req, FC_COLUMN);
     dbuf_write_int32(req, 0);
-    dbuf_write_byte(req, COL_INT);
+    dbuf_write_byte(req, VAL_INT);
     handler_handle(hd, req, resp);
     ASSERT0(dbuf_read_bool(resp), "was not ok");
     ASSERT0(dbuf_read_bool(resp), "id not set");
@@ -193,7 +193,7 @@ void test_handler_functions() {
     dbuf_reset(resp);
     dbuf_write_byte(req, FC_COLUMN);
     dbuf_write_int32(req, 1);
-    dbuf_write_byte(req, COL_TEXT);
+    dbuf_write_byte(req, VAL_TEXT);
     handler_handle(hd, req, resp);
     ASSERT0(dbuf_read_bool(resp), "was not ok");
     ASSERT0(dbuf_read_bool(resp), "was not set");
@@ -203,7 +203,7 @@ void test_handler_functions() {
     dbuf_reset(resp);
     dbuf_write_byte(req, FC_COLUMN);
     dbuf_write_int32(req, 2);
-    dbuf_write_byte(req, COL_INT64);
+    dbuf_write_byte(req, VAL_INT64);
     handler_handle(hd, req, resp);
     ASSERT0(dbuf_read_bool(resp), "was not ok");
     ASSERT0(dbuf_read_bool(resp), "was not set");
@@ -213,7 +213,7 @@ void test_handler_functions() {
     dbuf_reset(resp);
     dbuf_write_byte(req, FC_COLUMN);
     dbuf_write_int32(req, 3);
-    dbuf_write_byte(req, COL_DOUBLE);
+    dbuf_write_byte(req, VAL_DOUBLE);
     handler_handle(hd, req, resp);
     ASSERT0(dbuf_read_bool(resp), "was not ok");
     ASSERT0(dbuf_read_bool(resp), "was not set");
@@ -223,7 +223,7 @@ void test_handler_functions() {
     dbuf_reset(resp);
     dbuf_write_byte(req, FC_COLUMN);
     dbuf_write_int32(req, 4);
-    dbuf_write_byte(req, COL_BLOB);
+    dbuf_write_byte(req, VAL_BLOB);
     handler_handle(hd, req, resp);
     ASSERT0(dbuf_read_bool(resp), "was not ok");
     ASSERT0(dbuf_read_bool(resp), "was not set");
@@ -317,13 +317,13 @@ void test_handler_exec_query() {
             sprintf(name, "User_%d", id);
             int age = 32+i;
             double rating = 0.12 * (double)(i+1);
-            dbuf_write_byte(req, COL_INT); // col_type
+            dbuf_write_byte(req, VAL_INT); // col_type
             dbuf_write_int32(req, id); // val
-            dbuf_write_byte(req, COL_TEXT); // col_type
+            dbuf_write_byte(req, VAL_TEXT); // col_type
             dbuf_write_string(req, name); // val
-            dbuf_write_byte(req, COL_INT); // col_type
+            dbuf_write_byte(req, VAL_INT); // col_type
             dbuf_write_int32(req, age); // val
-            dbuf_write_byte(req, COL_DOUBLE); // col_type
+            dbuf_write_byte(req, VAL_DOUBLE); // col_type
             dbuf_write_double(req, rating); // val
         }
         handler_handle(hd, req, resp);
@@ -345,15 +345,15 @@ void test_handler_exec_query() {
         dbuf_write_byte(req, FC_QUERY);
         dbuf_write_string(req, "SELECT id,name,age,rating FROM users WHERE id>=? AND name LIKE ? ORDER BY id");
         dbuf_write_int32(req, 2); // nparams
-        dbuf_write_byte(req, COL_INT); // param 1 type
+        dbuf_write_byte(req, VAL_INT); // param 1 type
         dbuf_write_int32(req, 1); // param 1 value
-        dbuf_write_byte(req, COL_TEXT); // param 2 type
+        dbuf_write_byte(req, VAL_TEXT); // param 2 type
         dbuf_write_string(req, "%"); // param 2 value
         dbuf_write_int32(req, 4); // ncols
-        dbuf_write_byte(req, COL_INT); // col 0 type
-        dbuf_write_byte(req, COL_TEXT); // col 1 type
-        dbuf_write_byte(req, COL_INT); // col 2 type
-        dbuf_write_byte(req, COL_DOUBLE); // col 3 type
+        dbuf_write_byte(req, VAL_INT); // col 0 type
+        dbuf_write_byte(req, VAL_TEXT); // col 1 type
+        dbuf_write_byte(req, VAL_INT); // col 2 type
+        dbuf_write_byte(req, VAL_DOUBLE); // col 3 type
         handler_handle(hd, req, resp);
         ASSERT0(dbuf_read_bool(resp), "was not ok");
         int nrows = dbuf_read_int32(resp);
@@ -488,7 +488,7 @@ void test_handler_errors() {
             dbuf_reset(resp);
             dbuf_write_byte(req, FC_BIND);
             dbuf_write_int32(req, iparam);
-            dbuf_write_byte(req, COL_INT);
+            dbuf_write_byte(req, VAL_INT);
             dbuf_write_int32(req, 42);
             handler_handle(hd, req, resp);
             ok = dbuf_read_bool(resp);
@@ -501,7 +501,7 @@ void test_handler_errors() {
         dbuf_reset(resp);
         dbuf_write_byte(req, FC_BIND);
         dbuf_write_int32(req, 1);
-        dbuf_write_byte(req, COL_INT);
+        dbuf_write_byte(req, VAL_INT);
         dbuf_write_int32(req, 42);
         handler_handle(hd, req, resp);
         ok = dbuf_read_bool(resp);
@@ -513,7 +513,7 @@ void test_handler_errors() {
             dbuf_reset(resp);
             dbuf_write_byte(req, FC_COLUMN);
             dbuf_write_int32(req, icols[i]);
-            dbuf_write_byte(req, COL_INT);
+            dbuf_write_byte(req, VAL_INT);
             handler_handle(hd, req, resp);
             ok = dbuf_read_bool(resp);
             ASSERT(ok, "wrong ok %d", ok);
@@ -536,7 +536,7 @@ void test_handler_errors() {
             dbuf_reset(resp);
             dbuf_write_byte(req, FC_COLUMN);
             dbuf_write_int32(req, icol);
-            dbuf_write_byte(req, COL_INT);
+            dbuf_write_byte(req, VAL_INT);
             handler_handle(hd, req, resp);
             ok = dbuf_read_bool(resp);
             ASSERT(ok, "icol %d: wrong ok %d", icol, ok);

@@ -104,9 +104,9 @@ void test_conn() {
     INFO("TEST %s OK\n", __func__);
 }
 
-void bench_conn_users(int nusers) {
+void bench_conn_users(int nusers, bool bindRating) {
     INFO("BENCH %s\n", __func__);
-    DEBUG("nusers=%d\n", nusers);
+    DEBUG("nusers=%d, bindRating=%d\n", nusers, bindRating);
     char errmsg[MAX_ERRMSG+1];
     conn *con = conn_new();
     conn_open(con, "test.db", errmsg, MAX_ERRMSG);
@@ -126,7 +126,11 @@ void bench_conn_users(int nusers) {
         conn_bind_int(con, 1, id, errmsg, MAX_ERRMSG);
         conn_bind_text(con, 2, name, errmsg, MAX_ERRMSG);
         conn_bind_int(con, 3, age, errmsg, MAX_ERRMSG);
-        conn_bind_double(con, 4, rating, errmsg, MAX_ERRMSG);
+        if (bindRating) {
+            conn_bind_double(con, 4, rating, errmsg, MAX_ERRMSG);
+        } else {
+            conn_bind_null(con, 4, errmsg, MAX_ERRMSG);
+        }
         conn_step(con, NULL, errmsg, MAX_ERRMSG);
         conn_reset(con, errmsg, MAX_ERRMSG);
     }

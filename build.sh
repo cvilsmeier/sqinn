@@ -6,11 +6,16 @@ fi
 
 if [ ! -f "bin/sqlite3.o" ]; then
     echo build sqlite3.o
-    gcc -Wall -O1 -o bin/sqlite3.o -c src/sqlite3.c -DSQLITE_THREADSAFE=0
+    gcc -O1 -o bin/sqlite3.o -c src/sqlite3.c -DSQLITE_THREADSAFE=0
 fi
 
-# LIBS=-ldl
 LIBS=
+
+case `uname -s` in 
+    *Linux*)
+        LIBS=-ldl
+        ;;
+esac
 
 echo build sqinn
 gcc $LIBS -Wall -O1 -o bin/sqinn \
@@ -21,6 +26,7 @@ gcc $LIBS -Wall -O1 -o bin/sqinn \
     src/conn_test.c \
     src/handler.c \
     src/handler_test.c \
+    src/loop.c \
     src/main.c \
     bin/sqlite3.o
 

@@ -6,12 +6,6 @@
 #include <string.h>
 #include <inttypes.h>
 
-// have functions
-
-#if defined(_WIN32) || defined(__MINGW64__)
-    #define HAVE_SETMODE 1
-#endif
-
 // versions
 
 #define SQINN_VERSION "0.0.0"
