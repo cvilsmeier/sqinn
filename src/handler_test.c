@@ -33,7 +33,7 @@ void test_handler_versions() {
     handler_handle(hd, req, resp);
     ASSERT0(dbuf_read_bool(resp), "was not ok");
     const char *sqlite_version = dbuf_read_string(resp);
-    ASSERT(strcmp(sqlite_version, "3.32.1")==0, "want sqlite_version 3.32.1 but was %s", sqlite_version);
+    ASSERT(strcmp(sqlite_version, "3.32.2")==0, "want sqlite_version 3.32.1 but was %s", sqlite_version);
     // cleanup
     dbuf_free(req);
     dbuf_free(resp);
