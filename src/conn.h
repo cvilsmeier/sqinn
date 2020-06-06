@@ -3,6 +3,9 @@
 
 #include "sqlite3.h"
 
+const char *lib_version();
+
+
 typedef struct {
     sqlite3 *db;
     sqlite3_stmt *stmt;
@@ -10,7 +13,6 @@ typedef struct {
 
 conn *conn_new();
 void conn_free(conn *this);
-const char *conn_version(conn *this); // cvvvvv this does not belong in conn!
 int conn_open(conn *this, const char *filename, char *errmsg, int maxerrmsg);
 int conn_prepare(conn *this, const char *sql, char *errmsg, int maxerrmsg);
 int conn_bind_null(conn *this, int iparam, char *errmsg, int maxerrmsg);

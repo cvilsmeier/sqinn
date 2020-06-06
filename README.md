@@ -23,27 +23,26 @@ to communicate with SQLite over stdin/stdout, using Sqinn.
 One example is [Go](https://golang.org/): There exist a bunch of Go libraries
 for reading and writing SQLite databases. All of them use `cgo` to call the
 SQLite C API functions. While this works (very well, indeed), it has
-drawbacks: First, you have to have gcc installed on your development system,
-Second, cgo slows down the build process. Third, cross compiling a cgo program
-to another platform (say from Linux to MacOS) is very complicated, if not
-impossible.
+drawbacks: First, you have to have gcc installed on your development system.
+Second, cgo slows down the Go compilation process. Third, cross compiling a
+cgo program to another platform (say from Linux to MacOS) is very complicated,
+if not impossible.
 
 Sqinn provides functions that map to SQLite functions, like `sqlite3_open()`,
 `sqlite3_prepare()`, `sqlite3_column()`, and so on. If you have not read the
 [Introduction to the SQLite C/C++
 Interface](https://www.sqlite.org/cintro.html), now it's a good time. It's a
-5-minute read and shows the basic workings of SQLite. All of the functions
-described that document are provided by Sqinn.
+5-minute read and shows the basic workings of SQLite. Sqinn provides all
+functions described in that document.
 
 Marshalling requests and responses back and forth between process boundaries
-is, of course, horribly slow. To improve performance, Sqinn provides functions
-that lets you call multiple SQLite functions in one request/response cycle.
+is, of course, slow. To improve performance, Sqinn provides functions that
+lets you call multiple SQLite functions in one request/response cycle.
 
-The provided function calls and the binary protocol used for marshalling
-request and response data is described in
-[binary\_protocol.md](binary_protocol.md).
+All function calls and the binary protocol used for marshalling request and
+response data is described in [binary\_protocol.md](binary_protocol.md).
 
-For performance considerations and benchmarks, see 
+For performance considerations and benchmarks, see
 [performance.md](performance.md).
 
 
@@ -58,12 +57,45 @@ page
 
 
 
-Limitations and Shortcomings
+Command line usage
 -------------------------------------------------------------------------------
+
+There isn't really one. Sqinn is not used by humans, it's used by other
+programs. That said:
+
+    $ sqinn help
+    Sqinn is SQLite over stdin/stdout
+
+    Usage:
+           sqinn [command]
+
+    The commands are:
+            help            show this help page
+            version         print Sqinn version
+            sqlite_version  print SQLite library version
+            test            execute built-in unit tests
+            bench           execute built-in benchmarks
+
+    When invoked without a command, Sqinn will read (await) requests
+    from stdin, print responses to stdout and output error messages
+    on stderr.
+    
+
+
+Limitations
+-------------------------------------------------------------------------------
+
 
 ### Single threaded
 
-Sqinn is single threaded. It serves requests only one-after-another.
+Sqinn is single threaded. It serves requests one after another.
+
+
+### Missing API functions
+
+Sqinn supports only a subset of the many functions that the SQLite C/C++ API
+provides. Interruption of SQL operations, backup functions, vfs and
+extension functions are not supported.
 
 
 ### Single statement

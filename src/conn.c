@@ -2,6 +2,11 @@
 #include "mem.h"
 #include "conn.h"
 
+const char *lib_version() {
+    return sqlite3_libversion();
+}
+
+
 conn *conn_new() {
     conn *this = MEM_MALLOC(sizeof(conn));
     this->db = NULL;
@@ -11,10 +16,6 @@ conn *conn_new() {
 
 void conn_free(conn *this) {
     MEM_FREE(this);
-}
-
-const char *conn_version(conn *this) {
-    return sqlite3_libversion();
 }
 
 int conn_open(conn *this, const char *filename, char *errmsg, int maxerrmsg) {

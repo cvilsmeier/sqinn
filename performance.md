@@ -49,7 +49,7 @@ are (lower numbers are better):
 
 Inserting 1 million rows takes twice as long, querying them takes 10 times
 as long. The time is mostly lost in marshalling, especially the column type
-`REAL` is problematic: It takes a lot of CPU cycles to convert a floating
+`REAL` is time consuming: It takes a lot of CPU cycles to convert a floating
 point number into a string and back. The same benchmark without that
 conversion gives the following result:
 
@@ -60,10 +60,11 @@ conversion gives the following result:
     | Sqinn          | 1.6 s   | 1.3 s   |
     +----------------+---------+---------+
 
-Inserting is getting par with the C API. That seems reasonable: Inserting data
+Insert is getting par with the C API. That seems reasonable: Inserting data
 is a lot of work for the database, so the marshalling overhead is
-comparatively small. Querying however, is fast, therefore the marshalling
-overhead plays a big role here. After all: 1 million rows if a lot of data.
+comparatively small. Querying however is fast, therefore the marshalling
+overhead plays a big role here, Sqinn is 6 to 7 times slower that direct API
+calls.
 
 
 ## Benchmark 2

@@ -38,11 +38,32 @@ void test_int64() {
 int main(int argc, char **argv) {
     for (int i=0 ; i<argc ; i++) {
         if (strcmp(argv[i], "help") == 0 || strcmp(argv[i], "--help") == 0) {
-            printf("sqinn v%s\nsqlite over stdin/out\nsee https://www.github.com/cvilsmeier/sqinn for details\n", SQINN_VERSION);
+            printf(
+                "Sqinn is SQLite over stdin/stdout\n"
+                "\n"
+                "Usage:\n"
+                "       sqinn [command]\n"
+                "\n"
+                "The commands are:\n"
+                "        help            show this help page\n"
+                "        version         print Sqinn version\n"
+                "        sqlite_version  print SQLite library version\n"
+                "        test            execute built-in unit tests\n"
+                "        bench           execute built-in benchmarks\n"
+                "\n"
+                "When invoked without a command, Sqinn will read (await) requests\n"
+                "from stdin, print responses to stdout and output error messages\n"
+                "on stderr.\n"
+                "\n"
+                "For more details see https://www.github.com/cvilsmeier/sqinn\n");
             return 0;
         }
         if (strcmp(argv[i], "version") == 0) {
             printf("sqinn v%s\n", SQINN_VERSION);
+            return 0;
+        }
+        if (strcmp(argv[i], "sqlite_version") == 0) {
+            printf("sqlite v%s\n", lib_version());
             return 0;
         }
         if (strcmp(argv[i], "test") == 0) {            

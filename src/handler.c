@@ -161,7 +161,7 @@ void handler_handle(handler *this, dbuf *req, dbuf *resp) {
         break;
         case FC_SQLITE_VERSION:
         {
-            const char *v = conn_version(con);
+            const char *v = lib_version(con);
             dbuf_write_bool(resp, TRUE);
             dbuf_write_string(resp, v);
         }
