@@ -2,6 +2,11 @@
 #include <stdarg.h>
 #include "util.h"
 
+#ifdef __MACH__
+#include <mach/clock.h>
+#include <mach/mach.h>
+#endif
+
 void log_info(const char *file, int line, const char *fmt, ...) {
     fprintf(stderr, "INFO  %25s:%-3d ", file, line); 
     va_list args;
@@ -35,7 +40,17 @@ void assert(const char *file, int line, bool condition, const char *fmt, ...) {
 
 double mono_time() {
     struct timespec t;
+#ifdef __MACH__
+    clock_serv_t cclock;
+    mach_timespec_t mts;
+    host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
+    clock_get_time(cclock, &mts);
+    mach_port_deallocate(mach_task_self(), cclock);
+    t.tv_sec = mts.tv_sec;
+    t.tv_nsec = mts.tv_nsec;
+#else
     clock_gettime(CLOCK_MONOTONIC, &t);
+#endif
     // DEBUG("sec=%d, nsec=%d\n", (int)t.tv_sec, (int)t.tv_nsec);
     double sec = (double)t.tv_sec;
     double nsec = (double)t.tv_nsec / (double)1000000000.0;
