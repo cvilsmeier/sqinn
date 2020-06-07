@@ -18,14 +18,6 @@ void test_handler_versions() {
     ASSERT0(dbuf_read_bool(resp), "was not ok");
     const char *sqinn_version = dbuf_read_string(resp);
     ASSERT(strcmp(sqinn_version, SQINN_VERSION)==0, "want sqinn_version %s but was %s", SQINN_VERSION, sqinn_version);
-    // io version
-    dbuf_reset(req);
-    dbuf_reset(resp);
-    dbuf_write_byte(req, FC_IO_VERSION);
-    handler_handle(hd, req, resp);
-    ASSERT0(dbuf_read_bool(resp), "was not ok");
-    int io_version = dbuf_read_int32(resp);
-    ASSERT(io_version==1, "want io_version 1 but was %d", io_version);
     // sqlite version
     dbuf_reset(req);
     dbuf_reset(resp);
@@ -62,197 +54,229 @@ void _prep_step_fin(handler *hd, dbuf *req, dbuf *resp, const char *sql) {
     ASSERT0(dbuf_read_bool(resp), "was not ok");
 }
 
-void test_handler_functions() {
+void test_handler_functions(const char *dbfile) {
     INFO("TEST %s\n", __func__);
+    DEBUG("dbfile=%s\n", dbfile);
     handler *hd = handler_new();
     dbuf *req = dbuf_new();
     dbuf *resp = dbuf_new();
+    bool ok;
     // open db
-    dbuf_reset(req);
-    dbuf_reset(resp);
-    dbuf_write_byte(req, FC_OPEN);
-    dbuf_write_string(req, "test.db");
-    handler_handle(hd, req, resp);
-    ASSERT0(dbuf_read_bool(resp), "was not ok");
+    {
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_OPEN);
+        dbuf_write_string(req, dbfile);
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
+    }
     // prepare schema
-    _prep_step_fin(hd, req, resp, "DROP TABLE IF EXISTS users");
-    _prep_step_fin(hd, req, resp, "CREATE TABLE users (id INTEGER PRIMARY KEY NOT NULL, name VARCHAR, age BIGINT, rating REAL, image BLOB)");
+    {
+        _prep_step_fin(hd, req, resp, "DROP TABLE IF EXISTS users");
+        _prep_step_fin(hd, req, resp, "CREATE TABLE users (id INTEGER PRIMARY KEY NOT NULL, name VARCHAR, age BIGINT, rating REAL, image BLOB)");
+    }
     // insert user
-    _prep_step_fin(hd, req, resp, "BEGIN");
-    // prepare
-    dbuf_reset(req);
-    dbuf_reset(resp);
-    dbuf_write_byte(req, FC_PREPARE);
-    dbuf_write_string(req, "INSERT INTO users (id, name, age, rating, image) VALUES (?, ?, ?, ?, ?);");
-    handler_handle(hd, req, resp);
-    ASSERT0(dbuf_read_bool(resp), "was not ok");
-    // bind id, name, age, rating
     int id = 1;
-    dbuf_reset(req);
-    dbuf_reset(resp);
-    dbuf_write_byte(req, FC_BIND);
-    dbuf_write_int32(req, 1);
-    dbuf_write_byte(req, VAL_INT);
-    dbuf_write_int32(req, id); // id=1
-    handler_handle(hd, req, resp);
-    ASSERT0(dbuf_read_bool(resp), "was not ok");
     const char *name = "Alice";
-    dbuf_reset(req);
-    dbuf_reset(resp);
-    dbuf_write_byte(req, FC_BIND);
-    dbuf_write_int32(req, 2);
-    dbuf_write_byte(req, VAL_TEXT);
-    dbuf_write_string(req, name); // name="Alice"
-    handler_handle(hd, req, resp);
-    ASSERT0(dbuf_read_bool(resp), "was not ok");
     int64 age = ((int64)2 << 62) + 3;
-    dbuf_reset(req);
-    dbuf_reset(resp);
-    dbuf_write_byte(req, FC_BIND);
-    dbuf_write_int32(req, 3);
-    dbuf_write_byte(req, VAL_INT64);
-    dbuf_write_int64(req, age); // age=2<<62 + 3
-    handler_handle(hd, req, resp);
-    ASSERT0(dbuf_read_bool(resp), "was not ok");
     double rating = 13.24;
-    dbuf_reset(req);
-    dbuf_reset(resp);
-    dbuf_write_byte(req, FC_BIND);
-    dbuf_write_int32(req, 4);
-    dbuf_write_byte(req, VAL_DOUBLE);
-    dbuf_write_double(req, rating); // rating=13.24
-    handler_handle(hd, req, resp);
-    ASSERT0(dbuf_read_bool(resp), "was not ok");
     byte image[128];
-    for (int i=0 ; i<sizeof(image) ; i++) {
-        image[i] = (byte)i;
+    {
+        _prep_step_fin(hd, req, resp, "BEGIN");
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_PREPARE);
+        dbuf_write_string(req, "INSERT INTO users (id, name, age, rating, image) VALUES (?, ?, ?, ?, ?);");
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
+        // bind id, name, age, rating
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_BIND);
+        dbuf_write_int32(req, 1);
+        dbuf_write_byte(req, VAL_INT);
+        dbuf_write_int32(req, id); // id=1
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_BIND);
+        dbuf_write_int32(req, 2);
+        dbuf_write_byte(req, VAL_TEXT);
+        dbuf_write_string(req, name); // name="Alice"
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_BIND);
+        dbuf_write_int32(req, 3);
+        dbuf_write_byte(req, VAL_INT64);
+        dbuf_write_int64(req, age); // age=2<<62 + 3
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_BIND);
+        dbuf_write_int32(req, 4);
+        dbuf_write_byte(req, VAL_DOUBLE);
+        dbuf_write_double(req, rating); // rating=13.24
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
+        for (int i = 0; i < (sizeof(image) / sizeof(image[0])); i++) {
+            image[i] = (byte)i;
+        }
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_BIND);
+        dbuf_write_int32(req, 5);
+        dbuf_write_byte(req, VAL_BLOB);
+        dbuf_write_blob(req, image, sizeof(image)); // image blob
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
+        // step
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_STEP);
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
+        bool more = dbuf_read_bool(resp);
+        ASSERT(!more, "expected !more but was %d", more);
+        // reset
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_RESET);
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
+        // changes
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_CHANGES);
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
+        int changes = dbuf_read_int32(resp);
+        ASSERT(changes==1, "wrong changes %d", changes);
+        // finalize
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_FINALIZE);
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
+        // commit
+        _prep_step_fin(hd, req, resp, "COMMIT");
     }
-    dbuf_reset(req);
-    dbuf_reset(resp);
-    dbuf_write_byte(req, FC_BIND);
-    dbuf_write_int32(req, 5);
-    dbuf_write_byte(req, VAL_BLOB);
-    dbuf_write_blob(req, image, sizeof(image)); // image blob
-    handler_handle(hd, req, resp);
-    ASSERT0(dbuf_read_bool(resp), "was not ok");
-    // step
-    dbuf_reset(req);
-    dbuf_reset(resp);
-    dbuf_write_byte(req, FC_STEP);
-    handler_handle(hd, req, resp);
-    ASSERT0(dbuf_read_bool(resp), "was not ok");
-    bool more = dbuf_read_bool(resp);
-    ASSERT(!more, "expected !more but was %d", more);
-    // reset
-    dbuf_reset(req);
-    dbuf_reset(resp);
-    dbuf_write_byte(req, FC_RESET);
-    handler_handle(hd, req, resp);
-    ASSERT0(dbuf_read_bool(resp), "was not ok");
-    // changes
-    dbuf_reset(req);
-    dbuf_reset(resp);
-    dbuf_write_byte(req, FC_CHANGES);
-    handler_handle(hd, req, resp);
-    ASSERT0(dbuf_read_bool(resp), "was not ok");
-    int changes = dbuf_read_int32(resp);
-    ASSERT(changes==1, "wrong changes %d", changes);
-    // finalize
-    dbuf_reset(req);
-    dbuf_reset(resp);
-    dbuf_write_byte(req, FC_FINALIZE);
-    handler_handle(hd, req, resp);
-    ASSERT0(dbuf_read_bool(resp), "was not ok");
-    // commit
-    _prep_step_fin(hd, req, resp, "COMMIT");
     // select user
-    dbuf_reset(req);
-    dbuf_reset(resp);
-    dbuf_write_byte(req, FC_PREPARE);
-    dbuf_write_string(req, "SELECT id, name, age, rating, image FROM users ORDER BY id;");
-    handler_handle(hd, req, resp);
-    ASSERT0(dbuf_read_bool(resp), "was not ok");
-    dbuf_reset(req);
-    dbuf_reset(resp);
-    dbuf_write_byte(req, FC_STEP);
-    handler_handle(hd, req, resp);
-    ASSERT0(dbuf_read_bool(resp), "was not ok");
-    more = dbuf_read_bool(resp);
-    ASSERT(more, "wrong more %d\n", more);
-    dbuf_reset(req);
-    dbuf_reset(resp);
-    dbuf_write_byte(req, FC_COLUMN);
-    dbuf_write_int32(req, 0);
-    dbuf_write_byte(req, VAL_INT);
-    handler_handle(hd, req, resp);
-    ASSERT0(dbuf_read_bool(resp), "was not ok");
-    ASSERT0(dbuf_read_bool(resp), "id not set");
-    int sel_id = dbuf_read_int32(resp);
-    ASSERT(sel_id==id, "wrong sel_id %d", sel_id);
-    dbuf_reset(req);
-    dbuf_reset(resp);
-    dbuf_write_byte(req, FC_COLUMN);
-    dbuf_write_int32(req, 1);
-    dbuf_write_byte(req, VAL_TEXT);
-    handler_handle(hd, req, resp);
-    ASSERT0(dbuf_read_bool(resp), "was not ok");
-    ASSERT0(dbuf_read_bool(resp), "was not set");
-    const char *sel_name = dbuf_read_string(resp);
-    ASSERT(strcmp(sel_name, name)==0, "wrong sel_name '%s'", sel_name);
-    dbuf_reset(req);
-    dbuf_reset(resp);
-    dbuf_write_byte(req, FC_COLUMN);
-    dbuf_write_int32(req, 2);
-    dbuf_write_byte(req, VAL_INT64);
-    handler_handle(hd, req, resp);
-    ASSERT0(dbuf_read_bool(resp), "was not ok");
-    ASSERT0(dbuf_read_bool(resp), "was not set");
-    int64 sel_age = dbuf_read_int64(resp);
-    ASSERT(sel_age==age, "wrong sel_age %I64d", sel_age);
-    dbuf_reset(req);
-    dbuf_reset(resp);
-    dbuf_write_byte(req, FC_COLUMN);
-    dbuf_write_int32(req, 3);
-    dbuf_write_byte(req, VAL_DOUBLE);
-    handler_handle(hd, req, resp);
-    ASSERT0(dbuf_read_bool(resp), "was not ok");
-    ASSERT0(dbuf_read_bool(resp), "was not set");
-    double sel_rating = dbuf_read_double(resp);
-    ASSERT(sel_rating == rating, "wrong sel_rating %g", sel_rating);
-    dbuf_reset(req);
-    dbuf_reset(resp);
-    dbuf_write_byte(req, FC_COLUMN);
-    dbuf_write_int32(req, 4);
-    dbuf_write_byte(req, VAL_BLOB);
-    handler_handle(hd, req, resp);
-    ASSERT0(dbuf_read_bool(resp), "was not ok");
-    ASSERT0(dbuf_read_bool(resp), "was not set");
-    int blob_size;
-    const byte *sel_image = dbuf_read_blob(resp, &blob_size);
-    ASSERT(sel_image != NULL, "wrong sel_image %p", sel_image);
-    ASSERT(blob_size == sizeof(image), "wrong blob_size %d", blob_size);
-    for (int i=0 ; i<blob_size ; i++) {
-        ASSERT(sel_image[i] == image[i], "wrong sel_image[%d] %d", i, sel_image[i]);
+    {
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_PREPARE);
+        dbuf_write_string(req, "SELECT id, name, age, rating, image FROM users ORDER BY id;");
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_STEP);
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
+        bool more = dbuf_read_bool(resp);
+        ASSERT(more, "expected more but was %d\n", more);
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_COLUMN);
+        dbuf_write_int32(req, 0);
+        dbuf_write_byte(req, VAL_INT);
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
+        ASSERT0(dbuf_read_bool(resp), "id not set");
+        int sel_id = dbuf_read_int32(resp);
+        ASSERT(sel_id==id, "wrong sel_id %d", sel_id);
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_COLUMN);
+        dbuf_write_int32(req, 1);
+        dbuf_write_byte(req, VAL_TEXT);
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
+        ASSERT0(dbuf_read_bool(resp), "was not set");
+        const char *sel_name = dbuf_read_string(resp);
+        ASSERT(strcmp(sel_name, name)==0, "wrong sel_name '%s'", sel_name);
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_COLUMN);
+        dbuf_write_int32(req, 2);
+        dbuf_write_byte(req, VAL_INT64);
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
+        ASSERT0(dbuf_read_bool(resp), "was not set");
+        int64 sel_age = dbuf_read_int64(resp);
+        ASSERT(sel_age==age, "wrong sel_age %I64d", sel_age);
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_COLUMN);
+        dbuf_write_int32(req, 3);
+        dbuf_write_byte(req, VAL_DOUBLE);
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
+        ASSERT0(dbuf_read_bool(resp), "was not set");
+        double sel_rating = dbuf_read_double(resp);
+        ASSERT(sel_rating == rating, "wrong sel_rating %g", sel_rating);
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_COLUMN);
+        dbuf_write_int32(req, 4);
+        dbuf_write_byte(req, VAL_BLOB);
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
+        ASSERT0(dbuf_read_bool(resp), "was not set");
+        int blob_size;
+        const byte *sel_image = dbuf_read_blob(resp, &blob_size);
+        ASSERT(sel_image != NULL, "wrong sel_image %p", sel_image);
+        ASSERT(blob_size == sizeof(image), "wrong blob_size %d", blob_size);
+        for (int i=0 ; i<blob_size ; i++) {
+            ASSERT(sel_image[i] == image[i], "wrong sel_image[%d] %d", i, sel_image[i]);
+        }
+        // step must have no more
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_STEP);
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
+        ASSERT(!dbuf_read_bool(resp), "want !more but was %d", TRUE);
+        // finalize
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_FINALIZE);
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
     }
-    // step must have no more
-    dbuf_reset(req);
-    dbuf_reset(resp);
-    dbuf_write_byte(req, FC_STEP);
-    handler_handle(hd, req, resp);
-    ASSERT0(dbuf_read_bool(resp), "was not ok");
-    ASSERT(!dbuf_read_bool(resp), "want !more but was %d", TRUE);
-    // finalize
-    dbuf_reset(req);
-    dbuf_reset(resp);
-    dbuf_write_byte(req, FC_FINALIZE);
-    handler_handle(hd, req, resp);
-    ASSERT0(dbuf_read_bool(resp), "was not ok");
     // close db
-    dbuf_reset(req);
-    dbuf_reset(resp);
-    dbuf_write_byte(req, FC_CLOSE);
-    handler_handle(hd, req, resp);
-    ASSERT0(dbuf_read_bool(resp), "was not ok");
+    {
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_CLOSE);
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
+    }
     // cleanup
     dbuf_free(req);
     dbuf_free(resp);
@@ -260,8 +284,9 @@ void test_handler_functions() {
     INFO("TEST %s OK\n", __func__);
 }
 
-void test_handler_exec_query() {
+void test_handler_exec_query(const char *dbfile) {
     INFO("TEST %s\n", __func__);
+    DEBUG("dbfile=%s\n", dbfile);
     handler *hd = handler_new();
     dbuf *req = dbuf_new();
     dbuf *resp = dbuf_new();
@@ -269,39 +294,49 @@ void test_handler_exec_query() {
         dbuf_reset(req);
         dbuf_reset(resp);
         dbuf_write_byte(req, FC_OPEN);
-        dbuf_write_string(req, "test.db");
+        dbuf_write_string(req, dbfile);
         handler_handle(hd, req, resp);
-        ASSERT0(dbuf_read_bool(resp), "was not ok");
+        bool ok = dbuf_read_bool(resp);        
+        ASSERT(ok, "expected ok but ok was %d", ok);
     }
     {
         dbuf_reset(req);
         dbuf_reset(resp);
         dbuf_write_byte(req, FC_EXEC);
         dbuf_write_string(req, "DROP TABLE IF EXISTS users");
-        dbuf_write_int32(req, 1);
-        dbuf_write_int32(req, 0);
+        dbuf_write_int32(req, 1); // niterations
+        dbuf_write_int32(req, 0); // nparams per iteration
         handler_handle(hd, req, resp);
-        ASSERT0(dbuf_read_bool(resp), "was not ok");
+        bool ok = dbuf_read_bool(resp);        
+        ASSERT(ok, "expected ok but ok was %d", ok);
+        int changes = dbuf_read_int32(resp);
+        ASSERT(changes==0, "expected 0 changes but was %d", changes);
     }
     {
         dbuf_reset(req);
         dbuf_reset(resp);
         dbuf_write_byte(req, FC_EXEC);
         dbuf_write_string(req, "CREATE TABLE users (id INTEGER PRIMARY KEY NOT NULL, name VARCHAR, age INTEGER, rating REAL)");
-        dbuf_write_int32(req, 1);
-        dbuf_write_int32(req, 0);
+        dbuf_write_int32(req, 1); // niterations
+        dbuf_write_int32(req, 0); // nparams per iteration
         handler_handle(hd, req, resp);
-        ASSERT0(dbuf_read_bool(resp), "was not ok");
+        bool ok = dbuf_read_bool(resp);        
+        ASSERT(ok, "expected ok but ok was %d", ok);
+        int changes = dbuf_read_int32(resp);
+        ASSERT(changes==0, "expected 0 changes but was %d", changes);
     }
     {
         dbuf_reset(req);
         dbuf_reset(resp);
         dbuf_write_byte(req, FC_EXEC);
-        dbuf_write_string(req, "BEGIN TRANSACTION");
-        dbuf_write_int32(req, 1);
-        dbuf_write_int32(req, 0);
+        dbuf_write_string(req, "BEGIN");
+        dbuf_write_int32(req, 1); // niterations
+        dbuf_write_int32(req, 0); // nparams per iteration
         handler_handle(hd, req, resp);
-        ASSERT0(dbuf_read_bool(resp), "was not ok");
+        bool ok = dbuf_read_bool(resp);        
+        ASSERT(ok, "expected ok but ok was %d", ok);
+        int changes = dbuf_read_int32(resp);
+        ASSERT(changes==0, "expected 0 changes but was %d", changes);
     }
     int nusers = 2;
     {
@@ -310,7 +345,7 @@ void test_handler_exec_query() {
         dbuf_write_byte(req, FC_EXEC);
         dbuf_write_string(req, "INSERT INTO users (id,name,age,rating) VALUES (?,?,?,?)");
         dbuf_write_int32(req, nusers); // niterations
-        dbuf_write_int32(req, 4); // nparams per row
+        dbuf_write_int32(req, 4); // nparams per iteration
         for (int i=0 ; i<nusers ; i++) {
             int id = i+1;
             char name[32];
@@ -327,7 +362,12 @@ void test_handler_exec_query() {
             dbuf_write_double(req, rating); // val
         }
         handler_handle(hd, req, resp);
-        ASSERT0(dbuf_read_bool(resp), "was not ok");
+        bool ok = dbuf_read_bool(resp);        
+        ASSERT(ok, "expected ok but ok was %d", ok);
+        for (int i=0 ; i<nusers ; i++) {
+            int changes = dbuf_read_int32(resp);
+            ASSERT(changes==1, "for i=%d: expected 1 change but was %d", i, changes);
+        }
     }
     {
         dbuf_reset(req);
@@ -337,7 +377,8 @@ void test_handler_exec_query() {
         dbuf_write_int32(req, 1);
         dbuf_write_int32(req, 0);
         handler_handle(hd, req, resp);
-        ASSERT0(dbuf_read_bool(resp), "was not ok");
+        bool ok = dbuf_read_bool(resp);        
+        ASSERT(ok, "expected ok but ok was %d", ok);
     }
     {
         dbuf_reset(req);
@@ -355,7 +396,8 @@ void test_handler_exec_query() {
         dbuf_write_byte(req, VAL_INT); // col 2 type
         dbuf_write_byte(req, VAL_DOUBLE); // col 3 type
         handler_handle(hd, req, resp);
-        ASSERT0(dbuf_read_bool(resp), "was not ok");
+        bool ok = dbuf_read_bool(resp);        
+        ASSERT(ok, "expected ok but ok was %d", ok);
         int nrows = dbuf_read_int32(resp);
         ASSERT(nrows == nusers, "want %d rows, have %d\n", nusers, nrows);
         for (int i=0 ; i<nrows ; i++) {
@@ -402,7 +444,8 @@ void test_handler_exec_query() {
         dbuf_reset(resp);
         dbuf_write_byte(req, FC_CLOSE);
         handler_handle(hd, req, resp);
-        ASSERT0(dbuf_read_bool(resp), "was not ok");
+        bool ok = dbuf_read_bool(resp);        
+        ASSERT(ok, "expected ok but ok was %d", ok);
     }
     dbuf_free(req);
     dbuf_free(resp);
@@ -423,8 +466,8 @@ void test_handler_errors() {
         dbuf_reset(resp);
         dbuf_write_byte(req, FC_CLOSE);
         handler_handle(hd, req, resp);
-        ok = dbuf_read_bool(resp);
-        ASSERT(ok, "wrong ok %d", ok);
+        ok = dbuf_read_bool(resp);        
+        ASSERT(ok, "expected ok but ok was %d", ok);
         // prepare before open is err
         dbuf_reset(req);
         dbuf_reset(resp);
@@ -432,7 +475,7 @@ void test_handler_errors() {
         dbuf_write_string(req, "SELECT 1");
         handler_handle(hd, req, resp);
         ok = dbuf_read_bool(resp);
-        ASSERT(!ok, "wrong ok %d", ok);
+        ASSERT(!ok, "expected !ok but ok was %d", ok);
         errmsg = dbuf_read_string(resp);
         ASSERT(strcmp(errmsg, "sqlite3_prepare_v2: err=21, msg=out of memory")==0, "wrong errmsg '%s'", errmsg);
     }
@@ -444,7 +487,7 @@ void test_handler_errors() {
         dbuf_write_string(req, ":memory:");
         handler_handle(hd, req, resp);
         ok = dbuf_read_bool(resp);
-        ASSERT(ok, "wrong ok %d", ok);
+        ASSERT(ok, "expected ok but ok was %d", ok);
         // double open is err
         dbuf_reset(req);
         dbuf_reset(resp);
@@ -452,7 +495,7 @@ void test_handler_errors() {
         dbuf_write_string(req, ":memory:");
         handler_handle(hd, req, resp);
         ok = dbuf_read_bool(resp);
-        ASSERT(!ok, "wrong ok %d", ok);
+        ASSERT(!ok, "expected !ok but ok was %d", ok);
         errmsg = dbuf_read_string(resp);
         ASSERT(strcmp(errmsg, "cannot open, db is already open")==0, "wrong errmsg '%s'", errmsg);
         // prepare invalid sql is err
@@ -462,7 +505,7 @@ void test_handler_errors() {
         dbuf_write_string(req, "SELECT something FROM anything WHERE AND SUBST;");
         handler_handle(hd, req, resp);
         ok = dbuf_read_bool(resp);
-        ASSERT(!ok, "wrong ok %d", ok);
+        ASSERT(!ok, "expected !ok but ok was %d", ok);
         errmsg = dbuf_read_string(resp);
         ASSERT(strcmp(errmsg, "sqlite3_prepare_v2: err=1, msg=near \"AND\": syntax error")==0, "wrong errmsg '%s'", errmsg);
         // finalize is ok
@@ -471,7 +514,7 @@ void test_handler_errors() {
         dbuf_write_byte(req, FC_FINALIZE);
         handler_handle(hd, req, resp);
         ok = dbuf_read_bool(resp);
-        ASSERT(ok, "wrong ok %d", ok);
+        ASSERT(ok, "expected ok but ok was %d", ok);
         // prepare is ok
         dbuf_reset(req);
         dbuf_reset(resp);
@@ -479,7 +522,7 @@ void test_handler_errors() {
         dbuf_write_string(req, "SELECT 1 WHERE 2 < ?;");
         handler_handle(hd, req, resp);
         ok = dbuf_read_bool(resp);
-        ASSERT(ok, "wrong ok %d", ok);
+        ASSERT(ok, "expected ok but ok was %d", ok);
         // bind iparam -1/0/2 is err
         int iparams[] = {-1,0,2};
         for (int i=0 ; i<sizeof(iparams)/sizeof(iparams[0]) ; i++) {
@@ -492,7 +535,7 @@ void test_handler_errors() {
             dbuf_write_int32(req, 42);
             handler_handle(hd, req, resp);
             ok = dbuf_read_bool(resp);
-            ASSERT(!ok, "iparam %d: wrong ok %d", iparam, ok);
+            ASSERT(!ok, "iparam %d: expected !ok but was %d", iparam, ok);
             errmsg = dbuf_read_string(resp);
             ASSERT(strcmp(errmsg, "sqlite3_bind_int: err=25, msg=column index out of range")==0, "iparam %d: wrong errmsg '%s'", iparam, errmsg);
         }
@@ -505,7 +548,7 @@ void test_handler_errors() {
         dbuf_write_int32(req, 42);
         handler_handle(hd, req, resp);
         ok = dbuf_read_bool(resp);
-        ASSERT(ok, "wrong ok %d", ok);
+        ASSERT(ok, "expected ok but was %d", ok);
         // column before step is ok (but always NULL)
         int icols[] = {-1,0,1,2};
         for (int i=0 ; i<sizeof(icols)/sizeof(icols[0]) ; i++) {
@@ -516,9 +559,9 @@ void test_handler_errors() {
             dbuf_write_byte(req, VAL_INT);
             handler_handle(hd, req, resp);
             ok = dbuf_read_bool(resp);
-            ASSERT(ok, "wrong ok %d", ok);
+            ASSERT(ok, "expected ok but was %d", ok);
             bool set = dbuf_read_bool(resp);
-            ASSERT(!set, "wrong set %d", set);
+            ASSERT(!set, "expected !set but was %d", set);
         }
         // step is ok
         dbuf_reset(req);
@@ -526,7 +569,7 @@ void test_handler_errors() {
         dbuf_write_byte(req, FC_STEP);
         handler_handle(hd, req, resp);
         ok = dbuf_read_bool(resp);
-        ASSERT(ok, "wrong ok %d", ok);
+        ASSERT(ok, "expected ok but was %d", ok);
         bool more = dbuf_read_bool(resp);
         ASSERT(more, "wrong more %d", more);
         // column is ok
@@ -555,7 +598,7 @@ void test_handler_errors() {
         dbuf_write_byte(req, FC_STEP);
         handler_handle(hd, req, resp);
         ok = dbuf_read_bool(resp);
-        ASSERT(ok, "wrong ok %d", ok);
+        ASSERT(ok, "expected ok but was %d", ok);
         more = dbuf_read_bool(resp);
         ASSERT(!more, "wrong more %d", more);
         // close with active stmt is err
@@ -564,7 +607,7 @@ void test_handler_errors() {
         dbuf_write_byte(req, FC_CLOSE);
         handler_handle(hd, req, resp);
         ok = dbuf_read_bool(resp);
-        ASSERT(!ok, "wrong ok %d", ok);
+        ASSERT(!ok, "expected !ok but was %d", ok);
         errmsg = dbuf_read_string(resp);
         ASSERT(strcmp(errmsg, "sqlite3_close: err=5, msg=unable to close due to unfinalized statements or unfinished backups")==0, "wrong errmsg '%s'", errmsg);
     }

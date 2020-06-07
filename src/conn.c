@@ -6,7 +6,6 @@ const char *lib_version() {
     return sqlite3_libversion();
 }
 
-
 conn *conn_new() {
     conn *this = MEM_MALLOC(sizeof(conn));
     this->db = NULL;

@@ -4,8 +4,7 @@
 // function codes
 
 #define FC_SQINN_VERSION   1
-#define FC_IO_VERSION      2
-#define FC_SQLITE_VERSION  3
+#define FC_SQLITE_VERSION  2
 #define FC_OPEN            10
 #define FC_PREPARE         11
 #define FC_BIND            12

@@ -36,20 +36,29 @@ void test_int64() {
 }
 
 int main(int argc, char **argv) {
+    char dbfile[128];
+    strcpy(dbfile, ":memory:");
     for (int i=0 ; i<argc ; i++) {
         if (strcmp(argv[i], "help") == 0 || strcmp(argv[i], "--help") == 0) {
             printf(
                 "Sqinn is SQLite over stdin/stdout\n"
                 "\n"
                 "Usage:\n"
-                "       sqinn [command]\n"
                 "\n"
-                "The commands are:\n"
+                "       sqinn [command] [options...]\n"
+                "\n"
+                "Commands are:\n"
+                "\n"
                 "        help            show this help page\n"
                 "        version         print Sqinn version\n"
                 "        sqlite_version  print SQLite library version\n"
                 "        test            execute built-in unit tests\n"
                 "        bench           execute built-in benchmarks\n"
+                "\n"
+                "Options are:\n"
+                "\n"
+                "        -db             db file, used for test and bench\n"
+                "                        commands. Default is \":memory:\"\n"
                 "\n"
                 "When invoked without a command, Sqinn will read (await) requests\n"
                 "from stdin, print responses to stdout and output error messages\n"
@@ -57,35 +66,33 @@ int main(int argc, char **argv) {
                 "\n"
                 "For more details see https://www.github.com/cvilsmeier/sqinn\n");
             return 0;
-        }
-        if (strcmp(argv[i], "version") == 0) {
+        } else if (strcmp(argv[i], "version") == 0) {
             printf("sqinn v%s\n", SQINN_VERSION);
             return 0;
-        }
-        if (strcmp(argv[i], "sqlite_version") == 0) {
+        } else if (strcmp(argv[i], "sqlite_version") == 0) {
             printf("sqlite v%s\n", lib_version());
             return 0;
-        }
-        if (strcmp(argv[i], "test") == 0) {            
+        } else if (strcmp(argv[i], "test") == 0) {            
             test_int64();
             test_dbuf();
-            test_conn();
+            test_conn(dbfile);
             test_handler_versions();
-            test_handler_functions();
-            test_handler_exec_query();
+            test_handler_functions(dbfile);
+            test_handler_exec_query(dbfile);
             test_handler_errors();
             bench_dbuf(2);
-            bench_conn_users(2, TRUE);
-            bench_conn_complex(2,2,2);
+            bench_conn_users(dbfile, 2, TRUE);
+            bench_conn_complex(dbfile, 2,2,2);
             ASSERT(mem_usage()==0, "mem_usage: %d\n", mem_usage());
             return 0;
-        }
-        if (strcmp(argv[i], "bench") == 0) {
+        } else if (strcmp(argv[i], "bench") == 0) {
             bench_dbuf(100);
-            bench_conn_users(1000*1000, FALSE);
-            bench_conn_complex(100,100,10);
+            bench_conn_users(dbfile, 1000*1000, FALSE);
+            bench_conn_complex(dbfile, 100,100,10);
             ASSERT(mem_usage()==0, "mem_usage: %d\n", mem_usage());
             return 0;
+        } else if (strcmp(argv[i], "-db") == 0) {
+            strncpy(dbfile, argv[i+1], sizeof(dbfile));
         }
     }
 #if defined(_WIN32) || defined(__MINGW64__)

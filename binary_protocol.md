@@ -4,8 +4,9 @@ SQINN BINARY PROTOCOL
 
 Sqinn reads a request telegram from stdin, processes the request, outputs a
 response telegram to stdout, and waits for the next request telegram. A
-telegram consists of a 4-byte size N, followed by a payload of N bytes. If N
-is zero, or a read error occurs, sqinn terminates.
+telegram consists of a 4-byte size N, followed by a payload of N bytes. The
+payload is either a request or a response. If N is zero, or a read error occurs
+while reading the 4-byte size N or the payload, sqinn terminates.
 
 A requests starts with a one-byte function code, followed by a variable number
 of argument values. The function code tells sqinn which sqlite function to
@@ -23,11 +24,11 @@ For opening a sqlite database file, function code 1 (FC\_OPEN) is used. The
 single argument to FC_\OPEN is the filename. A sample request looks like this:
 
     [ 0] 0x0A        FC_OPEN
-    [ 1] 0x00        4-byte size of filename plus terminating null
+    [ 1] 0x00        4-byte size of filename plus terminating null (8 in this case)
     [ 2] 0x00
     [ 3] 0x00
     [ 4] 0x08
-    [ 5] 0x74         7 bytes filename "test.db"
+    [ 5] 0x74        7 bytes filename "test.db"
     [ 6] 0x65
     [ 7] 0x73
     [ 8] 0x74
@@ -36,18 +37,40 @@ single argument to FC_\OPEN is the filename. A sample request looks like this:
     [11] 0x62
     [12] 0x00        1 null byte
 
-Byte 0 is set to 10, which is FC\_OPEN. Bytes 1 to 12 contain the only
-argument to FC\_OPEN, which is the filename to be opened.
+Byte 0 is set to 10, which is the numerical code for FC\_OPEN. Bytes 1 to 12
+contain the only argument to FC\_OPEN, which is the filename to be opened.
 
+For sending the request to Sqinn's stdin, the request has to be preceded by its
+4-byte size N, so that Sqinn knows how many bytes it must read before it can
+start processing the request. In our example N is decimal 13 (0x0C), so
+the complete telegram will look like this:
 
-If the file could be opened, sqinn will output the following response:
+    [ 0] 0x00        4-byte size of subsequent request payload (13 in this case)
+    [ 1] 0x00
+    [ 2] 0x00
+    [ 3] 0x0C
+    [ 4] 0x0A        FC_OPEN
+    [ 5] 0x00        4-byte size of filename plus terminating null (8 in this case)
+    [ 6] 0x00
+    [ 7] 0x00
+    [ 8] 0x08
+    [ 9] 0x74        7 bytes filename "test.db"
+    [10] 0x65
+    [11] 0x73
+    [12] 0x74
+    [13] 0x2e
+    [14] 0x64
+    [15] 0x62
+    [16] 0x00        1 null byte
 
-    [0] 0x01        bool 1 "ok"
+If the file could be opened, sqinn will output the following response payload:
+
+    [0] 0x01         bool 1 "ok"
 
 If a error occurred, sqinn will output an error:
 
     [ 0] 0x00        bool 0 "not ok"
-    [ 1] 0x00        4 bytes size of error message plus terminating null byte
+    [ 1] 0x00        4 bytes size of error message plus terminating null byte (10 i this case)
     [ 2] 0x00
     [ 3] 0x00
     [ 4] 0x0A
@@ -61,6 +84,10 @@ If a error occurred, sqinn will output an error:
     [11] 'n'
     [12] 'd'
     [13] 0x00        1 null byte
+
+Before writing the reponse to stdout, Sqinn will write the 4-byte size N of the
+response, so that consumers of Sqinn's stdout know how many bytes to read to
+have a complete response.
 
 In the following sections, we describe the data types used to encode and
 decode function arguments and response values. Then we describe the function
@@ -145,7 +172,7 @@ Examples:
 Functions
 ------------------------------------------------------------------------------
 
-This section lists all function codes understood by sqinn, with arguments and
+This section lists all functions understood by sqinn, with arguments and
 return values. The numerical values of all function codes and value types are
 enumerated in `src/handler.h`. For a better understanding of the provided
 functions, we recommend reading SQLite's Introduction to its C/C++ interface:
@@ -173,22 +200,6 @@ This function returns the version of sqinn as a string, e.g. "1.0.0".
 
         bool     true                  true means "success"
         string   version_string        e.g. "1.0.0"
-
-
-### FC\_IO\_VERSION
-
-This function returns the version of the binary protocol as an int32 value,
-currently the value is always 1. In future releases, we might increment this
-version number.
-
-    Request:
-
-        byte     FC_IO_VERSION
-
-    Response (Success):
-
-        bool     true
-        int32    version               currently always 1
 
 
 ### FC\_SQLITE\_VERSION
@@ -356,7 +367,7 @@ Closes a database.
 
 ### FC\_EXEC
 
-Executes a statement, potentially multiple times.
+Executes a statement multiple times.
 
     Request:
 
@@ -371,11 +382,13 @@ Executes a statement, potentially multiple times.
     Response (Success):
 
         bool     true
+        for 0 to niterations:
+            int32 changes      the change counter for the n'th iteration
 
-Exec is used to combine invocations of prepare/bind/step/reset/finalize into
-one function call. Let's make an example. Say you want to insert three users.
-The user table has two columns: `id` and `name`. The request would then look
-like this:
+Exec is used to combine invocations of prepare, bind, step, changes, reset and
+finalize in one request/response cycle. Let's make an example. Say you want to
+insert three users. The user table has two columns: `id` and `name`. The
+request would then look like this:
 
      1: byte   FC_EXEC
      2: string "INSERT INTO users (id,name) VALUES(?,?)"
@@ -407,13 +420,31 @@ like this:
   and no name (name NULL).
 
 If `niterations` is zero, the statement is not called at all. This is allowed.
-However, FC\_EXEC should not be called in the first place in this case.
+However, preparing a statement, running it zero times, and the finalizing that
+statement doesn't make no sense. Therefore, FC\_EXEC should not be called in
+the first place in this case.
 
 The `nparams` argument is allowed to be zero. In that case, no parameters are
 bound, and the statement is executed as-is. This is often the case if you want
 to execute statements other than INSERT, UPDATE or DELETE, for example "BEGIN
 TRANSACTION" or "COMMIT", or you have statements without bind parameters, e.g.
 "DELETE FROM users".
+
+For the above request, the response might look like this:
+
+
+     1: bool   1
+     2: int32  1
+     3: int32  1
+     4: int32  1
+
+- Line 1 indicates success (true)
+- Line 2 is the change counter for the first iteration: 1 row was updated by
+  that sql operation.
+- Line 3 is the change counter for the second iteration: 1 row was updated by
+  that sql operation.
+- Line 4 is the change counter for the third iteration: 1 row was updated by
+  that sql operation.
 
 
 ### FC\_QUERY
@@ -422,15 +453,15 @@ Execute a query and fetch all row values in one go.
 
     Request:
 
-        byte   FC_QUERY
+        byte FC_QUERY
         string sql
-        int32  nparams       number of bind parameters
+        int32 nparams          number of bind parameters
         for 0 to nparams:
-            byte val_type    type of parameter value
-            any value
-        int32  ncols         number of columns per row
+            byte val_type      type of parameter value
+            any value          the parameter value
+        int32 ncols            number of columns per row
         for 0 to ncols:
-            byte val_type    type of column value
+            byte val_type      type of column value
 
     Response (Success):
 

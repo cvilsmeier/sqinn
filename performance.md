@@ -70,8 +70,8 @@ calls.
 ## Benchmark 2
 
 The second benchmark uses a more complex schema: 3 tables, many foreign key
-constraints, many indices. For details see `src/conn_test.c`. The results are
-(lower numbers are better):
+constraints, many indices. For details see function `bench_conn_complex()` in
+`src/conn_test.c`. The results are (lower numbers are better):
 
     +----------------+---------+---------+
     |                | insert  | query   |

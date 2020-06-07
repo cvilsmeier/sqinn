@@ -14,11 +14,12 @@ void _prepare_step_finalize(conn *con, const char *sql, char *errmsg, int maxerr
     ASSERT(!err, "finalize err %s", errmsg);
 }
 
-void test_conn() {
+void test_conn(const char *dbfile) {
     INFO("TEST %s\n", __func__);
+    DEBUG("dbfile=%s\n", dbfile);
     char errmsg[MAX_ERRMSG+1];
     conn *con = conn_new();
-    int err = conn_open(con, "test.db", errmsg, MAX_ERRMSG);
+    int err = conn_open(con, dbfile, errmsg, MAX_ERRMSG);
     ASSERT(!err, "expected !err but was %d", err);
     // prepare schema
     err = conn_prepare(con, "DROP TABLE IF EXISTS users", errmsg, MAX_ERRMSG);
@@ -33,13 +34,17 @@ void test_conn() {
     ASSERT(!err, "wrong err %d", err);
     err = conn_finalize(con, errmsg, MAX_ERRMSG);
     ASSERT(!err, "wrong err %d", err);
-    // insert users
+    // insert users without parameters
     err = conn_prepare(con, "INSERT INTO users (id,name,age,rating) VALUES(1, 'Alice', 31, 0.1)", errmsg, MAX_ERRMSG);
     ASSERT(!err, "wrong err %d", err);
     err = conn_step(con, NULL, errmsg, MAX_ERRMSG);
     ASSERT(!err, "wrong err %d", err);
+    int changes;
+    conn_changes(con, &changes);
+    ASSERT(changes==1, "wrong changes %d", changes);
     err = conn_finalize(con, errmsg, MAX_ERRMSG);
     ASSERT(!err, "wrong err %d", err);
+    // insert users with parameters
     err = conn_prepare(con, "INSERT INTO users (id,name,age,rating) VALUES(?,?,?,?)", errmsg, MAX_ERRMSG);
     ASSERT(!err, "wrong err %d", err);
     int icol = 1;
@@ -53,6 +58,8 @@ void test_conn() {
     ASSERT(!err, "wrong err %d", err);
     err = conn_step(con, NULL, errmsg, MAX_ERRMSG);
     ASSERT(!err, "wrong err %d", err);
+    conn_changes(con, &changes);
+    ASSERT(changes==1, "wrong changes %d", changes);
     err = conn_reset(con, errmsg, MAX_ERRMSG);
     ASSERT(!err, "wrong err %d", err);
     icol = 1;
@@ -66,6 +73,8 @@ void test_conn() {
     ASSERT(!err, "wrong err %d", err);
     err = conn_step(con, NULL, errmsg, MAX_ERRMSG);
     ASSERT(!err, "wrong err %d", err);
+    conn_changes(con, &changes);
+    ASSERT(changes==1, "wrong changes %d", changes);
     err = conn_reset(con, errmsg, MAX_ERRMSG);
     ASSERT(!err, "wrong err %d", err);
     err = conn_finalize(con, errmsg, MAX_ERRMSG);
@@ -93,8 +102,24 @@ void test_conn() {
         err = conn_step(con, &more, errmsg, MAX_ERRMSG);
         ASSERT(!err, "wrong err %d", err);
     }
-    // DEBUG("found %I64u users\n", nrows);
     ASSERT(nrows == 3, "want 3 rows but have %d", (int)nrows);
+    err = conn_finalize(con, errmsg, MAX_ERRMSG);
+    ASSERT(!err, "wrong err %d", err);
+    // delete users
+    err = conn_prepare(con, "DELETE FROM users WHERE name = 'does_not_exist'", errmsg, MAX_ERRMSG);
+    ASSERT(!err, "wrong err %d", err);
+    err = conn_step(con, NULL, errmsg, MAX_ERRMSG);
+    ASSERT(!err, "wrong err %d", err);
+    conn_changes(con, &changes);
+    ASSERT(changes==0, "wrong changes %d", changes);
+    err = conn_finalize(con, errmsg, MAX_ERRMSG);
+    ASSERT(!err, "wrong err %d", err);
+    err = conn_prepare(con, "DELETE FROM users WHERE id >= 0", errmsg, MAX_ERRMSG);
+    ASSERT(!err, "wrong err %d", err);
+    err = conn_step(con, NULL, errmsg, MAX_ERRMSG);
+    ASSERT(!err, "wrong err %d", err);
+    conn_changes(con, &changes);
+    ASSERT(changes==3, "wrong changes %d", changes);
     err = conn_finalize(con, errmsg, MAX_ERRMSG);
     ASSERT(!err, "wrong err %d", err);
     // close db
@@ -104,12 +129,12 @@ void test_conn() {
     INFO("TEST %s OK\n", __func__);
 }
 
-void bench_conn_users(int nusers, bool bindRating) {
+void bench_conn_users(const char *dbfile, int nusers, bool bindRating) {
     INFO("BENCH %s\n", __func__);
-    DEBUG("nusers=%d, bindRating=%d\n", nusers, bindRating);
+    DEBUG("dbfile=%s, nusers=%d, bindRating=%d\n", dbfile, nusers, bindRating);
     char errmsg[MAX_ERRMSG+1];
     conn *con = conn_new();
-    conn_open(con, "test.db", errmsg, MAX_ERRMSG);
+    conn_open(con, dbfile, errmsg, MAX_ERRMSG);
     double t1 = mono_time();
     // prepare schema
     _prepare_step_finalize(con, "DROP TABLE IF EXISTS users", errmsg, MAX_ERRMSG);
@@ -168,12 +193,12 @@ void bench_conn_users(int nusers, bool bindRating) {
     INFO("BENCH %s OK\n", __func__);
 }
 
-void bench_conn_complex(int nprofiles, int nusers, int nlocations) {
+void bench_conn_complex(const char *dbfile, int nprofiles, int nusers, int nlocations) {
     INFO("BENCH %s\n", __func__);
-    DEBUG("nprofiles, nusers, nlocations = %d, %d, %d\n", nprofiles, nusers, nlocations);
+    DEBUG("dbfile=%s, nprofiles, nusers, nlocations = %d, %d, %d\n", dbfile, nprofiles, nusers, nlocations);
     char errmsg[MAX_ERRMSG+1];
     conn *con = conn_new();
-    conn_open(con, "test.db", errmsg, MAX_ERRMSG);
+    conn_open(con, dbfile, errmsg, MAX_ERRMSG);
     // create schema
     _prepare_step_finalize(con, "PRAGMA foreign_keys=1", errmsg, MAX_ERRMSG);
     _prepare_step_finalize(con, "DROP TABLE IF EXISTS locations", errmsg, MAX_ERRMSG);

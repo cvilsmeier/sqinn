@@ -153,12 +153,6 @@ void handler_handle(handler *this, dbuf *req, dbuf *resp) {
             dbuf_write_string(resp, SQINN_VERSION);
         }
         break;
-        case FC_IO_VERSION:
-        {
-            dbuf_write_bool(resp, TRUE);
-            dbuf_write_int32(resp, IO_VERSION);
-        }
-        break;
         case FC_SQLITE_VERSION:
         {
             const char *v = lib_version(con);
@@ -241,6 +235,8 @@ void handler_handle(handler *this, dbuf *req, dbuf *resp) {
             const char *sql = dbuf_read_string(req);
             int err = SQLITE_OK;
             bool prepared = TRUE;
+            int niterations = 0;
+            int *changes = NULL;
             if (!err) {
                 err = conn_prepare(con, sql, errmsg, MAX_ERRMSG);
                 if (err) {
@@ -248,14 +244,18 @@ void handler_handle(handler *this, dbuf *req, dbuf *resp) {
                 }
             }
             if (!err) {
-                int niterations = dbuf_read_int32(req);
+                niterations = dbuf_read_int32(req);                
                 int nparams = dbuf_read_int32(req);
+                changes = MEM_MALLOC(niterations * sizeof(int));
                 for (int iit = 0; !err && iit < niterations; iit++) {
                     for (int iparam = 1; !err && iparam <= nparams; iparam++) {
                         err = _bind_param(con, iparam, req, errmsg, MAX_ERRMSG);
                     }
                     if (!err) {
                         err = conn_step(con, NULL, errmsg, MAX_ERRMSG);
+                    }
+                    if (!err) {
+                        conn_changes(con, &changes[iit]);
                     }
                     if (!err) {
                         if (iit < niterations-1) {
@@ -272,6 +272,12 @@ void handler_handle(handler *this, dbuf *req, dbuf *resp) {
                 }
             }
             _write_ok_or_err(err, errmsg, resp);
+            if (!err) {
+                for (int iit = 0; iit < niterations; iit++) {
+                    dbuf_write_int32(resp, changes[iit]);
+                }
+            }
+            MEM_FREE(changes);
         }
         break;
         case FC_QUERY:

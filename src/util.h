@@ -9,7 +9,6 @@
 // versions
 
 #define SQINN_VERSION "0.0.0"
-#define IO_VERSION    1
 
 // types
 
