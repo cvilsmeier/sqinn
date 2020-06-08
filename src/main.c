@@ -11,7 +11,8 @@
 
 void test_int64() {
     INFO("TEST %s\n", __func__);
-    DEBUG("PRIu64=%s, PRId64=%s\n", PRIu64, PRId64);
+    DEBUG("sizeof(int)=%d, sizeof(size_t)=%d, sizeof(int64)=%d, PRIu64=%s, PRId64=%s\n", sizeof(int), sizeof(size_t), sizeof(int64), PRIu64, PRId64);
+    ASSERT(sizeof(int)==4, "expected int to be 4 bytes but was %d", sizeof(size_t));
     ASSERT(sizeof(size_t)==8 || sizeof(size_t)==4, "expected size_t to be 8 or 4 bytes but was %"PRIu64, sizeof(size_t));
     ASSERT(sizeof(int64)==8, "expected int64 to be 8 bytes but was %"PRIu64, sizeof(int64));
     char buf[64];

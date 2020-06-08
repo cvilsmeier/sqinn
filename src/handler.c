@@ -153,6 +153,12 @@ void handler_handle(handler *this, dbuf *req, dbuf *resp) {
             dbuf_write_string(resp, SQINN_VERSION);
         }
         break;
+        case FC_IO_VERSION:
+        {
+            dbuf_write_bool(resp, TRUE);
+            dbuf_write_byte(resp, IO_VERSION);
+        }
+        break;
         case FC_SQLITE_VERSION:
         {
             const char *v = lib_version(con);

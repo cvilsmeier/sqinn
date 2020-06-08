@@ -3,8 +3,9 @@
 #include "util.h"
 
 #ifdef __MACH__
-#include <mach/clock.h>
-#include <mach/mach.h>
+    // darwin does not have clock_gettime()
+    #include <mach/clock.h>
+    #include <mach/mach.h>
 #endif
 
 void log_info(const char *file, int line, const char *fmt, ...) {

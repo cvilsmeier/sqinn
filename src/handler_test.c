@@ -17,7 +17,15 @@ void test_handler_versions() {
     handler_handle(hd, req, resp);
     ASSERT0(dbuf_read_bool(resp), "was not ok");
     const char *sqinn_version = dbuf_read_string(resp);
-    ASSERT(strcmp(sqinn_version, SQINN_VERSION)==0, "want sqinn_version %s but was %s", SQINN_VERSION, sqinn_version);
+    ASSERT(strcmp(sqinn_version, "0.0.0")==0, "want sqinn_version 0.0.0 but was %s", sqinn_version);
+    // io protocol version
+    dbuf_reset(req);
+    dbuf_reset(resp);
+    dbuf_write_byte(req, FC_IO_VERSION);
+    handler_handle(hd, req, resp);
+    ASSERT0(dbuf_read_bool(resp), "was not ok");
+    byte io_version = dbuf_read_byte(resp);
+    ASSERT(io_version==1, "want io_version 1 but was %d", io_version);
     // sqlite version
     dbuf_reset(req);
     dbuf_reset(resp);

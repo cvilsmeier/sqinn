@@ -202,6 +202,21 @@ This function returns the version of sqinn as a string, e.g. "1.0.0".
         string   version_string        e.g. "1.0.0"
 
 
+### FC\_IO\_VERSION
+
+This function returns the current IO protocol version as a byte. The version is
+currently always 1 but may change in the future.
+
+    Request:
+
+        byte     FC_IO_VERSION
+
+    Response (Success):
+
+        bool     true                  true means "success"
+        byte     version               currently always 1
+
+
 ### FC\_SQLITE\_VERSION
 
 This function returns the version of the sqlite library as a string, e.g.
@@ -407,22 +422,22 @@ request would then look like this:
     15: byte   VAL_NULL
 
 - Line 1 is the function code.
-- Line 2 is the sql needed for inserting users.
-- Line 3 is `niteration`, the number of iterations, in this case the given
+- Line 2 is the sql text.
+- Line 3 is `niterations`, the number of iterations, in this case the given
   INSERT statement will be executed three times. 
 - Line 4 is `nparams`, the number of bind parameters per iteration. In this
-  case, each INSERT iteration needs 2 values bound.
+  case, each INSERT iteration needs 2 parameters, one for the id column and one
+  for the name.
 - Lines 5-8 contain the values for the first INSERT call: A user with id 1 and
   name Alice.
 - Lines 9-12 contain the values for the next INSERT call: A user with id 2 and
   name Bob.
 - Lines 13-15 contain the values for the third INSERT call: A user with id 3
-  and no name (name NULL).
+  and no name (name parameter is NULL).
 
 If `niterations` is zero, the statement is not called at all. This is allowed.
 However, preparing a statement, running it zero times, and the finalizing that
-statement doesn't make no sense. Therefore, FC\_EXEC should not be called in
-the first place in this case.
+statement doesn't make much sense and should be avoided.
 
 The `nparams` argument is allowed to be zero. In that case, no parameters are
 bound, and the statement is executed as-is. This is often the case if you want
@@ -431,7 +446,6 @@ TRANSACTION" or "COMMIT", or you have statements without bind parameters, e.g.
 "DELETE FROM users".
 
 For the above request, the response might look like this:
-
 
      1: bool   1
      2: int32  1

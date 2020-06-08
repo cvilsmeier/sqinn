@@ -4,7 +4,7 @@ SQINN
 
 Sqinn is an alternative to the SQLite C API. Sqinn reads requests from stdin,
 forwards the request to SQLite, and writes a response to stdout. It is used in
-programming environments that do not allow to call C API functions directly.
+programming environments that do not allow calling C API functions directly.
 
     !!!
 
@@ -14,46 +14,53 @@ programming environments that do not allow to call C API functions directly.
 
     !!!
 
-[SQLite](https://www.sqlite.org/index.html) is written in C and provides a API
+[SQLite](https://www.sqlite.org) is written in C and provides a API
 for using it in C/C++. There are many language bindings. If you cannot or do
 not want to use one of the available language bindings, and your programming
 language allows the creation of subprocesses (fork/exec), an option might be
 to communicate with SQLite over stdin/stdout, using Sqinn.
 
-One example is [Go](https://golang.org/): There exist a bunch of Go libraries
+One example is [Go](https://golang.org): There exist a bunch of Go libraries
 for reading and writing SQLite databases. All of them use `cgo` to call the
-SQLite C API functions. While this works (very well, indeed), it has
-drawbacks: First, you have to have gcc installed on your development system.
-Second, cgo slows down the Go compilation process. Third, cross compiling a
-cgo program to another platform (say from Linux to MacOS) is very complicated,
-if not impossible.
+SQLite C API functions. While this works (very well, indeed), it has drawbacks:
+First, you have to have gcc installed on your development system.  Second, cgo
+slows down the Go compilation process. Third, cross compiling a cgo program to
+another platform (say from Linux to MacOS) is very complicated, if not
+impossible.
 
 Sqinn provides functions that map to SQLite functions, like `sqlite3_open()`,
 `sqlite3_prepare()`, `sqlite3_column()`, and so on. If you have not read the
 [Introduction to the SQLite C/C++
 Interface](https://www.sqlite.org/cintro.html), now it's a good time. It's a
-5-minute read and shows the basic workings of SQLite. Sqinn provides all
-functions described in that document.
+5-minute read and shows the basic workings of SQLite.
 
 Marshalling requests and responses back and forth between process boundaries
-is, of course, slow. To improve performance, Sqinn provides functions that
-lets you call multiple SQLite functions in one request/response cycle.
+is, of course, slow. To improve performance, Sqinn provides functions that lets
+you call multiple SQLite functions in one request/response cycle.
 
-All function calls and the binary protocol used for marshalling request and
-response data is described in [binary\_protocol.md](binary_protocol.md).
+All function calls and the binary IO protocol used for marshalling request and
+response data is described in [io\_protocol.md](io_protocol.md).
 
 For performance considerations and benchmarks, see
 [performance.md](performance.md).
+
+For the Go (Golang) language binding, see
+<https://github.com/cvilsmeier/sqinn-go>.
 
 
 Compiling with gcc
 -------------------------------------------------------------------------------
 
 See the included `build.sh` script for compiling Sqinn with `gcc`. I have
-tested it on Windows 10 x64 using Mingw and Cygwin, and Debian Linux 10.3
-amd64. Alternatively, you can use the pre-built binaries from the releases
-page
-[github.com/cvilsmeier/sqinn/releases](https://github.com/cvilsmeier/sqinn/releases).
+tested it on the following platforms:
+
+- Windows 10 amd64, using Mingw64 gcc
+- Debian Linux 10 amd64
+- Raspbian Linux armv (Raspberry Pi)
+- Darwin amd64 (MacOS)
+
+The releases page contains a ZIP file with pre-built binaries which you can try
+out, see <https://github.com/cvilsmeier/sqinn/releases>.
 
 
 
