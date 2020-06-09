@@ -2,6 +2,8 @@
 SQINN
 ===============================================================================
 
+![Sqinn](logo-200.png "Sqinn")
+
 Sqinn is an alternative to the SQLite C API. Sqinn reads requests from stdin,
 forwards the request to SQLite, and writes a response to stdout. It is used in
 programming environments that do not allow calling C API functions directly.
