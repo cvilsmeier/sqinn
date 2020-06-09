@@ -89,7 +89,8 @@ int main(int argc, char **argv) {
         } else if (strcmp(argv[i], "bench") == 0) {
             bench_dbuf(100);
             bench_conn_users(dbfile, 1000*1000, FALSE);
-            bench_conn_complex(dbfile, 100,100,10);
+            bench_conn_users(dbfile, 1000*1000, TRUE);
+            bench_conn_complex(dbfile, 200,100,10);
             ASSERT(mem_usage()==0, "mem_usage: %d\n", mem_usage());
             return 0;
         } else if (strcmp(argv[i], "-db") == 0) {

@@ -6,14 +6,6 @@ Sqinn is an alternative to the SQLite C API. Sqinn reads requests from stdin,
 forwards the request to SQLite, and writes a response to stdout. It is used in
 programming environments that do not allow calling C API functions directly.
 
-    !!!
-
-    Not production-ready. 
-
-    Preliminary version, everything may change.
-
-    !!!
-
 [SQLite](https://www.sqlite.org) is written in C and provides a API
 for using it in C/C++. There are many language bindings. If you cannot or do
 not want to use one of the available language bindings, and your programming
@@ -21,15 +13,14 @@ language allows the creation of subprocesses (fork/exec), an option might be
 to communicate with SQLite over stdin/stdout, using Sqinn.
 
 One example is [Go](https://golang.org): There exist a bunch of Go libraries
-for reading and writing SQLite databases. All of them use `cgo` to call the
+for reading and writing SQLite databases. Most of them use `cgo` to call the
 SQLite C API functions. While this works (very well, indeed), it has drawbacks:
-First, you have to have gcc installed on your development system.  Second, cgo
+First, you have to have gcc installed on your development system. Second, cgo
 slows down the Go compilation process. Third, cross compiling a cgo program to
-another platform (say from Linux to MacOS) is very complicated, if not
-impossible.
+another platform (say from Linux to MacOS) is complex.
 
 Sqinn provides functions that map to SQLite functions, like `sqlite3_open()`,
-`sqlite3_prepare()`, `sqlite3_column()`, and so on. If you have not read the
+`sqlite3_prepare()`, `sqlite3_bind()`, and so on. If you have not read the
 [Introduction to the SQLite C/C++
 Interface](https://www.sqlite.org/cintro.html), now it's a good time. It's a
 5-minute read and shows the basic workings of SQLite.
@@ -86,30 +77,36 @@ programs. That said:
     When invoked without a command, Sqinn will read (await) requests
     from stdin, print responses to stdout and output error messages
     on stderr.
-    
 
 
 Limitations
 -------------------------------------------------------------------------------
-
 
 ### Single threaded
 
 Sqinn is single threaded. It serves requests one after another.
 
 
-### Missing API functions
+### API subset
 
 Sqinn supports only a subset of the many functions that the SQLite C/C++ API
 provides. Interruption of SQL operations, backup functions, vfs and
-extension functions are not supported.
+extension functions are not supported, among others.
 
 
 ### Single statement
 
-As of now, Sqinn does not support multiple active prepared statements at a
+As of now, Sqinn does not support multiple active statements at a
 time. If a caller tries to prepare a statement while another one is still
-active (i.e. not finalized), Sqinn will bark.
+active (i.e. un-finalized), Sqinn will bark.
+
+
+Changelog
+-------------------------------------------------------------------------------
+
+### 1.0.0
+
+- first version
 
 
 License

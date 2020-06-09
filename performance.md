@@ -43,11 +43,11 @@ are (lower numbers are better):
     +----------------+---------+---------+
     |                | insert  | query   |
     +----------------+---------+---------+
-    | SQLite C API   | 1.2 s   | 0.2 s   |
-    | Sqinn          | 2.6 s   | 2.4 s   |
+    | SQLite C API   | 1.1 s   | 0.2 s   |
+    | Sqinn          | 2.5 s   | 2.2 s   |
     +----------------+---------+---------+
 
-Inserting 1 million rows takes twice as long, querying them takes 10 times
+Inserting 1 million rows takes twice as long, querying them takes 11 times
 as long. The time is mostly lost in marshalling, especially the column type
 `REAL` is time consuming: It takes a lot of CPU cycles to convert a floating
 point number into a string and back. The same benchmark without that
@@ -57,14 +57,14 @@ conversion gives the following result:
     |                | insert  | query   |
     +----------------+---------+---------+
     | SQLite C API   | 1.1 s   | 0.2 s   |
-    | Sqinn          | 1.6 s   | 1.3 s   |
+    | Sqinn          | 1.5 s   | 1.3 s   |
     +----------------+---------+---------+
 
-Insert is getting par with the C API. That seems reasonable: Inserting data
+Insert is getting closer to the C API. That seems reasonable: Inserting data
 is a lot of work for the database, so the marshalling overhead is
-comparatively small. Querying however is fast, therefore the marshalling
-overhead plays a big role here, Sqinn is 6 to 7 times slower that direct API
-calls.
+comparatively small. Querying however is fast at the database level,
+therefore the marshalling overhead plays a big role here, Sqinn is 6 to 7
+times slower that direct API calls.
 
 
 ## Benchmark 2
@@ -76,8 +76,8 @@ constraints, many indices. For details see function `bench_conn_complex()` in
     +----------------+---------+---------+
     |                | insert  | query   |
     +----------------+---------+---------+
-    | SQLite C API   | 0.8 s   | 0.2 s   |
-    | Sqinn          | 1.0 s   | 0.7 s   |
+    | SQLite C API   | 1.3 s   | 0.4 s   |
+    | Sqinn          | 1.7 s   | 1.2 s   |
     +----------------+---------+---------+
 
 
@@ -86,4 +86,3 @@ constraints, many indices. For details see function `bench_conn_complex()` in
 Marshalling data over stdin/stdout takes time and therefore Sqinn is slower
 than calling the SQLite C API directly. The performance penalty depends, as
 shown, on the work the database has to do to execute a sql statement.
-

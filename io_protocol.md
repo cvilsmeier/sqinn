@@ -1,5 +1,5 @@
 
-SQINN BINARY PROTOCOL
+IO PROTOCOL
 ===============================================================================
 
 Sqinn reads a request telegram from stdin, processes the request, outputs a
