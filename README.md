@@ -1,7 +1,4 @@
 
-SQINN
-===============================================================================
-
 ![Sqinn](logo-200.png "Sqinn")
 
 Sqinn is an alternative to the SQLite C API. Sqinn reads requests from stdin,
