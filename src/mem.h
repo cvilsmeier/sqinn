@@ -2,12 +2,10 @@
 #define _MEM_H
 
 #define MEM_MALLOC(size)       mem_malloc(__FILE__, __LINE__, (size))
-#define MEM_STRDUP(src)        mem_strdup(__FILE__, __LINE__, (src))
 #define MEM_REALLOC(ptr, size) mem_realloc(__FILE__, __LINE__, (ptr), (size))
 #define MEM_FREE(p)            mem_free(__FILE__, __LINE__, (p))
 
 void *mem_malloc(const char* file, int line, size_t size);
-char *mem_strdup(const char* file, int line, const char *s);
 void *mem_realloc(const char* file, int line, void *ptr, size_t new_size);
 void mem_free(const char* file, int line, void *p);
 int mem_usage();

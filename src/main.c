@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
                 "\n"
                 "Usage:\n"
                 "\n"
-                "       sqinn [command] [options...]\n"
+                "       sqinn [options...] [command] \n"
                 "\n"
                 "Commands are:\n"
                 "\n"

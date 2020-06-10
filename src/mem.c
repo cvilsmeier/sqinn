@@ -13,13 +13,6 @@ void *mem_malloc(const char* file, int line, size_t size) {
     return p;
 }
 
-char *mem_strdup(const char* file, int line, const char *s) {
-    mem_alloc_count++;
-    char *p = strdup(s);
-    ASSERT(p, "strdup: %s", "out of memory");
-    return p;
-}
-
 void *mem_realloc(const char* file, int line, void *ptr, size_t new_size) {
     void *p = realloc(ptr, new_size);
     ASSERT(p, "realloc: %s", "out of memory");
