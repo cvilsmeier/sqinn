@@ -21,7 +21,7 @@ message (string value) follows, describing the error that occurred.
 Example:
 
 For opening a sqlite database file, function code 1 (FC\_OPEN) is used. The
-single argument to FC_\OPEN is the filename. A sample request looks like this:
+single argument to FC\_OPEN is the filename. A sample request looks like this:
 
     [ 0] 0x0A        FC_OPEN
     [ 1] 0x00        4-byte size of filename plus terminating null (8 in this case)
@@ -482,8 +482,8 @@ Execute a query and fetch all row values in one go.
         bool   true
         int32  nrows         number of result rows
         for 0 to (nrows * ncols):
-            byte val_type    type of column value
-            any value
+            bool set         true is value is set, false if NULL
+            any value        optional, only present if set is true
 
 Query is used to combine invocations of prepare, bind, step, column and
 finalize into one function call. Let's make an example. Say you want to query
