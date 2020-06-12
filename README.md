@@ -3,20 +3,20 @@
 
 Sqinn is an alternative to the SQLite C API. Sqinn reads requests from stdin,
 forwards the request to SQLite, and writes a response to stdout. It is used in
-programming environments that do not allow calling C API functions directly.
+programming environments that do not allow calling C API functions.
 
-[SQLite](https://www.sqlite.org) is written in C and provides a API
-for using it in C/C++. There are many language bindings. If you cannot or do
-not want to use one of the available language bindings, and your programming
-language allows the creation of subprocesses (fork/exec), an option might be
-to communicate with SQLite over stdin/stdout, using Sqinn.
+The [SQLite database library](https://www.sqlite.org) is written in C and
+provides an API for using it in C/C++. There are many language bindings. If you
+cannot or do not want to use one of the available language bindings, and your
+programming language allows the creation of subprocesses (fork/exec), an option
+might be to communicate with SQLite over stdin/stdout, using Sqinn.
 
 One example is [Go](https://golang.org): There exist a bunch of Go libraries
 for reading and writing SQLite databases. Most of them use `cgo` to call the
 SQLite C API functions. While this works (very well, indeed), it has drawbacks:
 First, you have to have gcc installed on your development system. Second, cgo
 slows down the Go compilation process. Third, cross compiling a cgo program to
-another platform (say from Linux to MacOS) is complex.
+another platform (say from Linux to MacOS) is hard to setup.
 
 Sqinn provides functions that map to SQLite functions, like `sqlite3_open()`,
 `sqlite3_prepare()`, `sqlite3_bind()`, and so on. If you have not read the
@@ -46,12 +46,11 @@ tested it on the following platforms:
 
 - Windows 10 amd64, using Mingw64 gcc
 - Debian Linux 10 amd64
-- Raspbian Linux armv (Raspberry Pi)
+- Raspbian Linux arm (Raspberry Pi)
 - Darwin amd64 (MacOS)
 
-The releases page contains a ZIP file with pre-built binaries which you can try
+The releases page contains a tar file with pre-built binaries which you can try
 out, see <https://github.com/cvilsmeier/sqinn/releases>.
-
 
 
 Command line usage
@@ -64,14 +63,21 @@ programs. That said:
     Sqinn is SQLite over stdin/stdout
 
     Usage:
-           sqinn [command]
 
-    The commands are:
+           sqinn [options...] [command]
+
+    Commands are:
+
             help            show this help page
             version         print Sqinn version
             sqlite_version  print SQLite library version
             test            execute built-in unit tests
             bench           execute built-in benchmarks
+
+    Options are:
+
+            -db             db file, used for test and bench
+                            commands. Default is ":memory:"
 
     When invoked without a command, Sqinn will read (await) requests
     from stdin, print responses to stdout and output error messages
@@ -98,14 +104,6 @@ extension functions are not supported, among others.
 As of now, Sqinn does not support multiple active statements at a
 time. If a caller tries to prepare a statement while another one is still
 active (i.e. un-finalized), Sqinn will bark.
-
-
-Changelog
--------------------------------------------------------------------------------
-
-### 1.0.0
-
-- first version
 
 
 License
