@@ -8,7 +8,7 @@
 
 // versions
 
-#define SQINN_VERSION "1.0.0" // sync with README
+#define SQINN_VERSION "1.1.0" // sync with README
 #define IO_VERSION    1
 
 // types
@@ -37,7 +37,7 @@ void assert(const char *file, int line, bool condition, const char *fmt, ...);
 // clock
 
 double mono_time();
-double mono_diff_sec(double a, double b);
+double mono_since(double then);
 
 #endif // _UTIL_H
 

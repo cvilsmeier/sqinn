@@ -184,13 +184,42 @@ const byte *dbuf_read_blob(dbuf *this, int *len) {
     return data;
 }
 
-void dbuf_write_double(dbuf *this, double value) {
+void dbuf_write_double_str(dbuf *this, double value) {
     char tmp[64];
     snprintf(tmp, sizeof(tmp)-1, "%g", value);
     dbuf_write_string(this, tmp);
 }
 
-double dbuf_read_double(dbuf *this) {
+double dbuf_read_double_str(dbuf *this) {
     const char *str = dbuf_read_string(this);
     return strtod(str, NULL);
+}
+
+void dbuf_write_double_ieee(dbuf *this, double value) {
+    byte *byte_ptr = (byte *)&value;
+    byte buf[8];
+    buf[0] = byte_ptr[7];
+    buf[1] = byte_ptr[6];
+    buf[2] = byte_ptr[5];
+    buf[3] = byte_ptr[4];
+    buf[4] = byte_ptr[3];
+    buf[5] = byte_ptr[2];
+    buf[6] = byte_ptr[1];
+    buf[7] = byte_ptr[0];
+    dbuf_write_bytes(this, buf, 8);
+}
+
+double dbuf_read_double_ieee(dbuf *this) {
+    byte *byte_ptr = _dbuf_read_bytes(this, 8);
+    byte buf[8];
+    buf[0] = byte_ptr[7];
+    buf[1] = byte_ptr[6];
+    buf[2] = byte_ptr[5];
+    buf[3] = byte_ptr[4];
+    buf[4] = byte_ptr[3];
+    buf[5] = byte_ptr[2];
+    buf[6] = byte_ptr[1];
+    buf[7] = byte_ptr[0];
+    double *double_ptr = (double *)buf;
+    return *double_ptr;
 }

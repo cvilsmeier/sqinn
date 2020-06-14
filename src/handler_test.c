@@ -17,7 +17,7 @@ void test_handler_versions() {
     handler_handle(hd, req, resp);
     ASSERT0(dbuf_read_bool(resp), "was not ok");
     const char *sqinn_version = dbuf_read_string(resp);
-    ASSERT(strcmp(sqinn_version, "1.0.0")==0, "wrong sqinn_version %s", sqinn_version);
+    ASSERT(strcmp(sqinn_version, "1.1.0")==0, "wrong sqinn_version %s", sqinn_version);
     // io protocol version
     dbuf_reset(req);
     dbuf_reset(resp);
@@ -64,7 +64,7 @@ void _prep_step_fin(handler *hd, dbuf *req, dbuf *resp, const char *sql) {
 
 void test_handler_functions(const char *dbfile) {
     INFO("TEST %s\n", __func__);
-    DEBUG("dbfile=%s\n", dbfile);
+    DEBUG("  dbfile=%s\n", dbfile);
     handler *hd = handler_new();
     dbuf *req = dbuf_new();
     dbuf *resp = dbuf_new();
@@ -82,67 +82,82 @@ void test_handler_functions(const char *dbfile) {
     // prepare schema
     {
         _prep_step_fin(hd, req, resp, "DROP TABLE IF EXISTS users");
-        _prep_step_fin(hd, req, resp, "CREATE TABLE users (id INTEGER PRIMARY KEY NOT NULL, name VARCHAR, age BIGINT, rating REAL, image BLOB)");
+        _prep_step_fin(hd, req, resp, "CREATE TABLE users (id INTEGER PRIMARY KEY NOT NULL, name VARCHAR, age BIGINT, rating REAL, balance REAL, image BLOB)");
     }
     // insert user
     int id = 1;
     const char *name = "Alice";
     int64 age = ((int64)2 << 62) + 3;
     double rating = 13.24;
+    double balance = 32.0;
     byte image[128];
     {
         _prep_step_fin(hd, req, resp, "BEGIN");
         dbuf_reset(req);
         dbuf_reset(resp);
         dbuf_write_byte(req, FC_PREPARE);
-        dbuf_write_string(req, "INSERT INTO users (id, name, age, rating, image) VALUES (?, ?, ?, ?, ?);");
+        dbuf_write_string(req, "INSERT INTO users (id, name, age, rating, balance, image) VALUES (?, ?, ?, ?, ?, ?);");
         handler_handle(hd, req, resp);
         ok = dbuf_read_bool(resp);
         ASSERT(ok, "expected ok but was %d", ok);
-        // bind id, name, age, rating
+        // bind id
         dbuf_reset(req);
         dbuf_reset(resp);
         dbuf_write_byte(req, FC_BIND);
-        dbuf_write_int32(req, 1);
+        dbuf_write_int32(req, 1); // iparam
         dbuf_write_byte(req, VAL_INT);
-        dbuf_write_int32(req, id); // id=1
+        dbuf_write_int32(req, id);
         handler_handle(hd, req, resp);
         ok = dbuf_read_bool(resp);
         ASSERT(ok, "expected ok but was %d", ok);
+        // bind name
         dbuf_reset(req);
         dbuf_reset(resp);
         dbuf_write_byte(req, FC_BIND);
-        dbuf_write_int32(req, 2);
+        dbuf_write_int32(req, 2); // iparam
         dbuf_write_byte(req, VAL_TEXT);
-        dbuf_write_string(req, name); // name="Alice"
+        dbuf_write_string(req, name);
         handler_handle(hd, req, resp);
         ok = dbuf_read_bool(resp);
         ASSERT(ok, "expected ok but was %d", ok);
+        // bind age
         dbuf_reset(req);
         dbuf_reset(resp);
         dbuf_write_byte(req, FC_BIND);
-        dbuf_write_int32(req, 3);
+        dbuf_write_int32(req, 3); // iparam
         dbuf_write_byte(req, VAL_INT64);
-        dbuf_write_int64(req, age); // age=2<<62 + 3
+        dbuf_write_int64(req, age);
         handler_handle(hd, req, resp);
         ok = dbuf_read_bool(resp);
         ASSERT(ok, "expected ok but was %d", ok);
+        // bind rating
         dbuf_reset(req);
         dbuf_reset(resp);
         dbuf_write_byte(req, FC_BIND);
-        dbuf_write_int32(req, 4);
-        dbuf_write_byte(req, VAL_DOUBLE);
-        dbuf_write_double(req, rating); // rating=13.24
+        dbuf_write_int32(req, 4); // iparam
+        dbuf_write_byte(req, VAL_DOUBLE_STR);
+        dbuf_write_double_str(req, rating);
         handler_handle(hd, req, resp);
         ok = dbuf_read_bool(resp);
         ASSERT(ok, "expected ok but was %d", ok);
+        // bind balance
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_BIND);
+        dbuf_write_int32(req, 5); // iparam
+        dbuf_write_byte(req, VAL_DOUBLE_IEEE);
+        dbuf_write_double_ieee(req, balance);
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
+        // bind image
         for (int i = 0; i < (sizeof(image) / sizeof(image[0])); i++) {
             image[i] = (byte)i;
         }
         dbuf_reset(req);
         dbuf_reset(resp);
         dbuf_write_byte(req, FC_BIND);
-        dbuf_write_int32(req, 5);
+        dbuf_write_int32(req, 6);
         dbuf_write_byte(req, VAL_BLOB);
         dbuf_write_blob(req, image, sizeof(image)); // image blob
         handler_handle(hd, req, resp);
@@ -188,7 +203,7 @@ void test_handler_functions(const char *dbfile) {
         dbuf_reset(req);
         dbuf_reset(resp);
         dbuf_write_byte(req, FC_PREPARE);
-        dbuf_write_string(req, "SELECT id, name, age, rating, image FROM users ORDER BY id;");
+        dbuf_write_string(req, "SELECT id, name, age, rating, balance, image FROM users ORDER BY id;");
         handler_handle(hd, req, resp);
         ok = dbuf_read_bool(resp);
         ASSERT(ok, "expected ok but was %d", ok);
@@ -200,6 +215,7 @@ void test_handler_functions(const char *dbfile) {
         ASSERT(ok, "expected ok but was %d", ok);
         bool more = dbuf_read_bool(resp);
         ASSERT(more, "expected more but was %d\n", more);
+        // fetch id
         dbuf_reset(req);
         dbuf_reset(resp);
         dbuf_write_byte(req, FC_COLUMN);
@@ -211,6 +227,7 @@ void test_handler_functions(const char *dbfile) {
         ASSERT0(dbuf_read_bool(resp), "id not set");
         int sel_id = dbuf_read_int32(resp);
         ASSERT(sel_id==id, "wrong sel_id %d", sel_id);
+        // fetch name
         dbuf_reset(req);
         dbuf_reset(resp);
         dbuf_write_byte(req, FC_COLUMN);
@@ -222,6 +239,7 @@ void test_handler_functions(const char *dbfile) {
         ASSERT0(dbuf_read_bool(resp), "was not set");
         const char *sel_name = dbuf_read_string(resp);
         ASSERT(strcmp(sel_name, name)==0, "wrong sel_name '%s'", sel_name);
+        // fetch age
         dbuf_reset(req);
         dbuf_reset(resp);
         dbuf_write_byte(req, FC_COLUMN);
@@ -233,21 +251,35 @@ void test_handler_functions(const char *dbfile) {
         ASSERT0(dbuf_read_bool(resp), "was not set");
         int64 sel_age = dbuf_read_int64(resp);
         ASSERT(sel_age==age, "wrong sel_age %I64d", sel_age);
+        // fetch rating
         dbuf_reset(req);
         dbuf_reset(resp);
         dbuf_write_byte(req, FC_COLUMN);
         dbuf_write_int32(req, 3);
-        dbuf_write_byte(req, VAL_DOUBLE);
+        dbuf_write_byte(req, VAL_DOUBLE_STR);
         handler_handle(hd, req, resp);
         ok = dbuf_read_bool(resp);
         ASSERT(ok, "expected ok but was %d", ok);
         ASSERT0(dbuf_read_bool(resp), "was not set");
-        double sel_rating = dbuf_read_double(resp);
+        double sel_rating = dbuf_read_double_str(resp);
         ASSERT(sel_rating == rating, "wrong sel_rating %g", sel_rating);
+        // fetch balance
         dbuf_reset(req);
         dbuf_reset(resp);
         dbuf_write_byte(req, FC_COLUMN);
         dbuf_write_int32(req, 4);
+        dbuf_write_byte(req, VAL_DOUBLE_IEEE);
+        handler_handle(hd, req, resp);
+        ok = dbuf_read_bool(resp);
+        ASSERT(ok, "expected ok but was %d", ok);
+        ASSERT0(dbuf_read_bool(resp), "was not set");
+        double sel_balance = dbuf_read_double_ieee(resp);
+        ASSERT(sel_balance == balance, "wrong sel_balance %g", sel_balance);
+        // fetch image
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_COLUMN);
+        dbuf_write_int32(req, 5);
         dbuf_write_byte(req, VAL_BLOB);
         handler_handle(hd, req, resp);
         ok = dbuf_read_bool(resp);
@@ -294,7 +326,7 @@ void test_handler_functions(const char *dbfile) {
 
 void test_handler_exec_query(const char *dbfile) {
     INFO("TEST %s\n", __func__);
-    DEBUG("dbfile=%s\n", dbfile);
+    DEBUG("  dbfile=%s\n", dbfile);
     handler *hd = handler_new();
     dbuf *req = dbuf_new();
     dbuf *resp = dbuf_new();
@@ -366,8 +398,8 @@ void test_handler_exec_query(const char *dbfile) {
             dbuf_write_string(req, name); // val
             dbuf_write_byte(req, VAL_INT); // col_type
             dbuf_write_int32(req, age); // val
-            dbuf_write_byte(req, VAL_DOUBLE); // col_type
-            dbuf_write_double(req, rating); // val
+            dbuf_write_byte(req, VAL_DOUBLE_STR); // col_type
+            dbuf_write_double_str(req, rating); // val
         }
         handler_handle(hd, req, resp);
         bool ok = dbuf_read_bool(resp);        
@@ -402,7 +434,7 @@ void test_handler_exec_query(const char *dbfile) {
         dbuf_write_byte(req, VAL_INT); // col 0 type
         dbuf_write_byte(req, VAL_TEXT); // col 1 type
         dbuf_write_byte(req, VAL_INT); // col 2 type
-        dbuf_write_byte(req, VAL_DOUBLE); // col 3 type
+        dbuf_write_byte(req, VAL_DOUBLE_STR); // col 3 type
         handler_handle(hd, req, resp);
         bool ok = dbuf_read_bool(resp);        
         ASSERT(ok, "expected ok but ok was %d", ok);
@@ -439,7 +471,7 @@ void test_handler_exec_query(const char *dbfile) {
             // rating
             set = dbuf_read_bool(resp);
             ASSERT(set, "expected rating set but was %d\n", set);
-            double rating = dbuf_read_double(resp);
+            double rating = dbuf_read_double_str(resp);
             if (i == 0) {
                 ASSERT(rating == 0.12, "expected rating == 0.12 but was %g\n", rating);
             } else if (i == 1) {

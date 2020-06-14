@@ -16,7 +16,7 @@ void _prepare_step_finalize(conn *con, const char *sql, char *errmsg, int maxerr
 
 void test_conn(const char *dbfile) {
     INFO("TEST %s\n", __func__);
-    DEBUG("dbfile=%s\n", dbfile);
+    DEBUG("  dbfile=%s\n", dbfile);
     char errmsg[MAX_ERRMSG+1];
     conn *con = conn_new();
     int err = conn_open(con, dbfile, errmsg, MAX_ERRMSG);
@@ -129,18 +129,18 @@ void test_conn(const char *dbfile) {
     INFO("TEST %s OK\n", __func__);
 }
 
-void bench_conn_users(const char *dbfile, int nusers, bool bindRating) {
+void bench_conn_users(const char *dbfile, int nusers) {
     INFO("BENCH %s\n", __func__);
-    DEBUG("dbfile=%s, nusers=%d, bindRating=%d\n", dbfile, nusers, bindRating);
+    DEBUG("  dbfile=%s, nusers=%d\n", dbfile, nusers);
     char errmsg[MAX_ERRMSG+1];
     conn *con = conn_new();
     conn_open(con, dbfile, errmsg, MAX_ERRMSG);
-    double t1 = mono_time();
     // prepare schema
     _prepare_step_finalize(con, "DROP TABLE IF EXISTS users", errmsg, MAX_ERRMSG);
     _prepare_step_finalize(con, "CREATE TABLE users (id INTEGER PRIMARY KEY NOT NULL, name VARCHAR, age INTEGER, rating REAL)", errmsg, MAX_ERRMSG);
-    // insert users
-    _prepare_step_finalize(con, "BEGIN TRANSACTION", errmsg, MAX_ERRMSG);
+    double tstart = mono_time();
+    // insert
+    _prepare_step_finalize(con, "BEGIN", errmsg, MAX_ERRMSG);
     conn_prepare(con, "INSERT INTO users (id, name, age, rating) VALUES(?,?,?,?)", errmsg, MAX_ERRMSG);
     for (int i=0 ; i<nusers ; i++) {
         int id = i+1;
@@ -151,19 +151,15 @@ void bench_conn_users(const char *dbfile, int nusers, bool bindRating) {
         conn_bind_int(con, 1, id, errmsg, MAX_ERRMSG);
         conn_bind_text(con, 2, name, errmsg, MAX_ERRMSG);
         conn_bind_int(con, 3, age, errmsg, MAX_ERRMSG);
-        if (bindRating) {
-            conn_bind_double(con, 4, rating, errmsg, MAX_ERRMSG);
-        } else {
-            conn_bind_null(con, 4, errmsg, MAX_ERRMSG);
-        }
+        conn_bind_double(con, 4, rating, errmsg, MAX_ERRMSG);
         conn_step(con, NULL, errmsg, MAX_ERRMSG);
         conn_reset(con, errmsg, MAX_ERRMSG);
     }
     conn_finalize(con, errmsg, MAX_ERRMSG);
     _prepare_step_finalize(con, "COMMIT", errmsg, MAX_ERRMSG);
-    // DEBUG("inserted %d users\n", nusers);
-    double t2 = mono_time();
+    DEBUG("  insert took %f s\n", mono_since(tstart));
     // select users
+    tstart = mono_time();
     conn_prepare(con, "SELECT id,name,age,rating FROM users ORDER BY id", errmsg, MAX_ERRMSG);
     bool more;
     conn_step(con, &more, errmsg, MAX_ERRMSG);
@@ -181,49 +177,46 @@ void bench_conn_users(const char *dbfile, int nusers, bool bindRating) {
         conn_column_double(con, 3, &set, &rating);
         conn_step(con, &more, errmsg, MAX_ERRMSG);
     }
-    // DEBUG("found %d users\n", nrows);
     ASSERT(nrows == nusers, "want %d rows but have %d", nusers, nrows);
     conn_finalize(con, errmsg, MAX_ERRMSG);
-    double t3 = mono_time();
+    DEBUG("  query took %f s\n", mono_since(tstart));
     // close db
     conn_close(con, errmsg, MAX_ERRMSG);
     conn_free(con);
-    DEBUG("insert took %f s\n", mono_diff_sec(t1, t2));
-    DEBUG("query took %f s\n", mono_diff_sec(t2, t3));
     INFO("BENCH %s OK\n", __func__);
 }
 
-void bench_conn_complex(const char *dbfile, int nprofiles, int nusers, int nlocations) {
+void bench_conn_complex(const char *dbfile, int nprofiles, int ndevices, int nlocations) {
     INFO("BENCH %s\n", __func__);
-    DEBUG("dbfile=%s, nprofiles, nusers, nlocations = %d, %d, %d\n", dbfile, nprofiles, nusers, nlocations);
+    DEBUG("  dbfile=%s, nprofiles, ndevices, nlocations = %d, %d, %d\n", dbfile, nprofiles, ndevices, nlocations);
     char errmsg[MAX_ERRMSG+1];
     conn *con = conn_new();
     conn_open(con, dbfile, errmsg, MAX_ERRMSG);
     // create schema
     _prepare_step_finalize(con, "PRAGMA foreign_keys=1", errmsg, MAX_ERRMSG);
     _prepare_step_finalize(con, "DROP TABLE IF EXISTS locations", errmsg, MAX_ERRMSG);
-    _prepare_step_finalize(con, "DROP TABLE IF EXISTS users", errmsg, MAX_ERRMSG);
+    _prepare_step_finalize(con, "DROP TABLE IF EXISTS devices", errmsg, MAX_ERRMSG);
     _prepare_step_finalize(con, "DROP TABLE IF EXISTS profiles", errmsg, MAX_ERRMSG);
     _prepare_step_finalize(con, "CREATE TABLE profiles (id VARCHAR PRIMARY KEY NOT NULL, name VARCHAR NOT NULL, active bool NOT NULL)", errmsg, MAX_ERRMSG);
     _prepare_step_finalize(con, "CREATE INDEX idx_profiles_name ON profiles(name);", errmsg, MAX_ERRMSG);
-    //_prepare_step_finalize(con, "CREATE INDEX idx_profiles_active ON profiles(active);", errmsg, MAX_ERRMSG);
-    _prepare_step_finalize(con, "CREATE TABLE users (id VARCHAR PRIMARY KEY NOT NULL, profileId VARCHAR NOT NULL, name VARCHAR NOT NULL, active bool NOT NULL, FOREIGN KEY (profileId) REFERENCES profiles(id))", errmsg, MAX_ERRMSG);
-    _prepare_step_finalize(con, "CREATE INDEX idx_users_profileId ON users(profileId);", errmsg, MAX_ERRMSG);
-    _prepare_step_finalize(con, "CREATE INDEX idx_users_name ON users(name);", errmsg, MAX_ERRMSG);
-    //_prepare_step_finalize(con, "CREATE INDEX idx_users_active ON users(active);", errmsg, MAX_ERRMSG);
-    _prepare_step_finalize(con, "CREATE TABLE locations (id VARCHAR PRIMARY KEY NOT NULL, userId VARCHAR NOT NULL, name VARCHAR NOT NULL, active bool NOT NULL, FOREIGN KEY (userId) REFERENCES users(id))", errmsg, MAX_ERRMSG);
-    _prepare_step_finalize(con, "CREATE INDEX idx_locations_userId ON locations(userId);", errmsg, MAX_ERRMSG);
+    _prepare_step_finalize(con, "CREATE INDEX idx_profiles_active ON profiles(active);", errmsg, MAX_ERRMSG);
+    _prepare_step_finalize(con, "CREATE TABLE devices (id VARCHAR PRIMARY KEY NOT NULL, profileId VARCHAR NOT NULL, name VARCHAR NOT NULL, active bool NOT NULL, FOREIGN KEY (profileId) REFERENCES profiles(id))", errmsg, MAX_ERRMSG);
+    _prepare_step_finalize(con, "CREATE INDEX idx_devices_profileId ON devices(profileId);", errmsg, MAX_ERRMSG);
+    _prepare_step_finalize(con, "CREATE INDEX idx_devices_name ON devices(name);", errmsg, MAX_ERRMSG);
+    _prepare_step_finalize(con, "CREATE INDEX idx_devices_active ON devices(active);", errmsg, MAX_ERRMSG);
+    _prepare_step_finalize(con, "CREATE TABLE locations (id VARCHAR PRIMARY KEY NOT NULL, deviceId VARCHAR NOT NULL, name VARCHAR NOT NULL, active bool NOT NULL, FOREIGN KEY (deviceId) REFERENCES devices(id))", errmsg, MAX_ERRMSG);
+    _prepare_step_finalize(con, "CREATE INDEX idx_locations_deviceId ON locations(deviceId);", errmsg, MAX_ERRMSG);
     _prepare_step_finalize(con, "CREATE INDEX idx_locations_name ON locations(name);", errmsg, MAX_ERRMSG);
-    //_prepare_step_finalize(con, "CREATE INDEX idx_locations_active ON locations(active);", errmsg, MAX_ERRMSG);
+    _prepare_step_finalize(con, "CREATE INDEX idx_locations_active ON locations(active);", errmsg, MAX_ERRMSG);
     // insert profiles
-    double t1 = mono_time();
-    _prepare_step_finalize(con, "BEGIN TRANSACTION", errmsg, MAX_ERRMSG);
+    double tstart = mono_time();
+    _prepare_step_finalize(con, "BEGIN", errmsg, MAX_ERRMSG);
     conn_prepare(con, "INSERT INTO profiles (id, name, active) VALUES(?, ?, ?)", errmsg, MAX_ERRMSG);
     for (int p=0 ; p<nprofiles ; p++) {
         char profile_id[32];
         sprintf(profile_id, "profile_%d", p);
         char name[32];
-        sprintf(name, "ProfileC %d", p);
+        sprintf(name, "Profile %d", p);
         int active = p%2;
         conn_bind_text(con, 1, profile_id, errmsg, MAX_ERRMSG);
         conn_bind_text(con, 2, name, errmsg, MAX_ERRMSG);
@@ -233,20 +226,19 @@ void bench_conn_complex(const char *dbfile, int nprofiles, int nusers, int nloca
     }
     conn_finalize(con, errmsg, MAX_ERRMSG);
     _prepare_step_finalize(con, "COMMIT", errmsg, MAX_ERRMSG);
-    // DEBUG("inserted %d profiles\n", nprofiles);
     // insert users
-    _prepare_step_finalize(con, "BEGIN TRANSACTION", errmsg, MAX_ERRMSG);
-    conn_prepare(con, "INSERT INTO users (id, profileId, name, active) VALUES(?, ?, ?, ?)", errmsg, MAX_ERRMSG);
+    _prepare_step_finalize(con, "BEGIN", errmsg, MAX_ERRMSG);
+    conn_prepare(con, "INSERT INTO devices (id, profileId, name, active) VALUES(?, ?, ?, ?)", errmsg, MAX_ERRMSG);
     for (int p=0 ; p<nprofiles ; p++) {
         char profile_id[32];
         sprintf(profile_id, "profile_%d", p);
-        for (int u=0 ; u<nusers ; u++) {
-            char user_id[32];
-            sprintf(user_id, "user_%d_%d", p, u);
+        for (int d=0 ; d<ndevices ; d++) {
+            char device_id[32];
+            sprintf(device_id, "device_%d_%d", p, d);
             char name[32];
-            sprintf(name, "User %d %d", p, u);
-            int active = u%2;
-            conn_bind_text(con, 1, user_id, errmsg, MAX_ERRMSG);
+            sprintf(name, "Device %d %d", p, d);
+            int active = d%2;
+            conn_bind_text(con, 1, device_id, errmsg, MAX_ERRMSG);
             conn_bind_text(con, 2, profile_id, errmsg, MAX_ERRMSG);
             conn_bind_text(con, 3, name, errmsg, MAX_ERRMSG);
             conn_bind_int(con, 4, active, errmsg, MAX_ERRMSG);
@@ -256,22 +248,21 @@ void bench_conn_complex(const char *dbfile, int nprofiles, int nusers, int nloca
     }
     conn_finalize(con, errmsg, MAX_ERRMSG);
     _prepare_step_finalize(con, "COMMIT", errmsg, MAX_ERRMSG);
-    // DEBUG("inserted %d users\n", nprofiles*nusers);
     // insert locations
-    _prepare_step_finalize(con, "BEGIN TRANSACTION", errmsg, MAX_ERRMSG);
-    conn_prepare(con, "INSERT INTO locations (id, userId, name, active) VALUES(?, ?, ?, ?)", errmsg, MAX_ERRMSG);
+    _prepare_step_finalize(con, "BEGIN", errmsg, MAX_ERRMSG);
+    conn_prepare(con, "INSERT INTO locations (id, deviceId, name, active) VALUES(?, ?, ?, ?)", errmsg, MAX_ERRMSG);
     for (int p=0 ; p<nprofiles ; p++) {
-        for (int u=0 ; u<nusers ; u++) {
-            char user_id[32];
-            sprintf(user_id, "user_%d_%d", p, u);
+        for (int d=0 ; d<ndevices ; d++) {
+            char device_id[32];
+            sprintf(device_id, "device_%d_%d", p, d);
             for (int l=0 ; l<nlocations ; l++) {
                 char location_id[32];
-                sprintf(location_id, "location_%d_%d_%d", p, u, l);
+                sprintf(location_id, "location_%d_%d_%d", p, d, l);
                 char name[32];
-                sprintf(name, "Location %d %d %d", p, u, l);
+                sprintf(name, "Location %d %d %d", p, d, l);
                 int active = l%2;
                 conn_bind_text(con, 1, location_id, errmsg, MAX_ERRMSG);
-                conn_bind_text(con, 2, user_id, errmsg, MAX_ERRMSG);
+                conn_bind_text(con, 2, device_id, errmsg, MAX_ERRMSG);
                 conn_bind_text(con, 3, name, errmsg, MAX_ERRMSG);
                 conn_bind_int(con, 4, active, errmsg, MAX_ERRMSG);
                 conn_step(con, NULL, errmsg, MAX_ERRMSG);
@@ -281,15 +272,18 @@ void bench_conn_complex(const char *dbfile, int nprofiles, int nusers, int nloca
     }
     conn_finalize(con, errmsg, MAX_ERRMSG);
     _prepare_step_finalize(con, "COMMIT", errmsg, MAX_ERRMSG);
-    DEBUG("inserted %d locations\n", nprofiles*nusers*nlocations);
-    double t2 = mono_time();
-    DEBUG("insert took %f s\n", mono_diff_sec(t1, t2));
-    const char *sql = "SELECT locations.id, locations.userId, locations.name, locations.active, users.id, users.profileId, users.name, users.active, profiles.id, profiles.name, profiles.active \
+    DEBUG("  insert took %f s\n", mono_since(tstart));
+    // query
+    tstart = mono_time();
+    const char *sql = "SELECT \
+      locations.id, locations.deviceId, locations.name, locations.active, \
+      devices.id, devices.profileId, devices.name, devices.active, \
+      profiles.id, profiles.name, profiles.active \
     FROM locations \
-    LEFT JOIN users ON users.id = locations.userId \
-    LEFT JOIN profiles ON profiles.id = users.profileId \
+    LEFT JOIN devices ON devices.id = locations.deviceId \
+    LEFT JOIN profiles ON profiles.id = devices.profileId \
     WHERE locations.active = ? OR locations.active = ? \
-    ORDER BY locations.name, locations.id, users.name, users.id, profiles.name, profiles.id";
+    ORDER BY locations.name, locations.id, devices.name, devices.id, profiles.name, profiles.id";
     int err = conn_prepare(con, sql, errmsg, MAX_ERRMSG);
     ASSERT(!err, "err %s", errmsg);
     err = conn_bind_int(con, 1, 0, errmsg, MAX_ERRMSG);
@@ -304,32 +298,32 @@ void bench_conn_complex(const char *dbfile, int nprofiles, int nusers, int nloca
     while(more) {
         nrows++;
         const char *location_id;
-        const char *location_user_id;
+        const char *location_device_id;
         const char *location_name;
         int location_active;
-        const char *user_id;
-        const char *user_profile_id;
-        const char *user_name;
-        int user_active;
+        const char *device_id;
+        const char *device_profile_id;
+        const char *device_name;
+        int device_active;
         const char *profile_id;
         const char *profile_name;
         int profile_active;
         conn_column_text(con,  0, &set, &location_id);
         ASSERT(strncmp(location_id, "loc", 3)==0, "wrong location_id '%s'", location_id);
-        conn_column_text(con,  1, &set, &location_user_id);
-        ASSERT(strncmp(location_user_id, "use", 3)==0, "wrong location_user_id '%s'", location_user_id);
+        conn_column_text(con,  1, &set, &location_device_id);
+        ASSERT(strncmp(location_device_id, "dev", 3)==0, "wrong location_device_id '%s'", location_device_id);
         conn_column_text(con,  2, &set, &location_name);
         ASSERT(strncmp(location_name, "Loc", 3)==0, "wrong location_name '%s'", location_name);
         conn_column_int (con,  3, &set, &location_active);
         ASSERT(location_active==0 || location_active==1, "wrong location_active %d", location_active);
-        conn_column_text(con,  4, &set, &user_id);
-        ASSERT(strncmp(user_id, "use", 3)==0, "wrong user_id '%s'", user_id);
-        conn_column_text(con,  5, &set, &user_profile_id);
-        ASSERT(strncmp(user_profile_id, "pro", 3)==0, "wrong user_profile_id '%s'", user_profile_id);
-        conn_column_text(con,  6, &set, &user_name);
-        ASSERT(strncmp(user_name, "Use", 3)==0, "wrong user_name '%s'", user_name);
-        conn_column_int (con,  7, &set, &user_active);
-        ASSERT(user_active==0 || user_active==1, "wrong user_active %d", user_active);
+        conn_column_text(con,  4, &set, &device_id);
+        ASSERT(strncmp(device_id, "dev", 3)==0, "wrong device_id '%s'", device_id);
+        conn_column_text(con,  5, &set, &device_profile_id);
+        ASSERT(strncmp(device_profile_id, "pro", 3)==0, "wrong device_profile_id '%s'", device_profile_id);
+        conn_column_text(con,  6, &set, &device_name);
+        ASSERT(strncmp(device_name, "Dev", 3)==0, "wrong device_name '%s'", device_name);
+        conn_column_int (con,  7, &set, &device_active);
+        ASSERT(device_active==0 || device_active==1, "wrong device_active %d", device_active);
         conn_column_text(con,  8, &set, &profile_id);
         ASSERT(strncmp(profile_id, "pro", 3)==0, "wrong profile_id '%s'", profile_id);
         conn_column_text(con,  9, &set, &profile_name);
@@ -339,12 +333,11 @@ void bench_conn_complex(const char *dbfile, int nprofiles, int nusers, int nloca
         err = conn_step(con, &more, errmsg, MAX_ERRMSG);
         ASSERT(!err, "err %s", errmsg);
     }
-    int exprows = nprofiles * nusers * nlocations;
+    int exprows = nprofiles * ndevices * nlocations;
     ASSERT(nrows==exprows, "expected %d rows but have %d", exprows, nrows);
     err = conn_finalize(con, errmsg, MAX_ERRMSG);
     ASSERT(!err, "err %s", errmsg);
-    double t3 = mono_time();
-    DEBUG("query took %f s\n", mono_diff_sec(t2, t3));
+    DEBUG("  query took %f s\n", mono_since(tstart));
     // close db
     conn_close(con, errmsg, MAX_ERRMSG);
     conn_free(con);

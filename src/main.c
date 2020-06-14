@@ -9,12 +9,18 @@
 #include "handler_test.h"
 #include "loop.h"
 
-void test_int64() {
+void test_platform() {
     INFO("TEST %s\n", __func__);
-    DEBUG("sizeof(int)=%d, sizeof(size_t)=%d, sizeof(int64)=%d, PRIu64=%s, PRId64=%s\n", sizeof(int), sizeof(size_t), sizeof(int64), PRIu64, PRId64);
+    DEBUG("  sizeof(int)=%d, sizeof(size_t)=%d, sizeof(int64)=%d, PRIu64=%s, PRId64=%s\n", sizeof(int), sizeof(size_t), sizeof(int64), PRIu64, PRId64);
     ASSERT(sizeof(int)==4, "expected int to be 4 bytes but was %d", sizeof(size_t));
     ASSERT(sizeof(size_t)==8 || sizeof(size_t)==4, "expected size_t to be 8 or 4 bytes but was %"PRIu64, sizeof(size_t));
     ASSERT(sizeof(int64)==8, "expected int64 to be 8 bytes but was %"PRIu64, sizeof(int64));
+    ASSERT(sizeof(double)==8, "expected double to be 8 bytes but was %"PRIu64, sizeof(double));
+    double dbl = -2; // in IEEE 745 it's hex(C000 0000 0000 0000)
+    byte dbl0 = ((char*)&dbl)[0];
+    byte dbl7 = ((char*)&dbl)[7];
+    ASSERT(dbl0== 0x00, "expected double -2 [0] 0x00 but was %02X", dbl0);
+    ASSERT(dbl7== 0xC0, "expected double -2 [7] 0xC0 but was %02X", dbl7);
     char buf[64];
     int64 x = ((int64)1 << 63);
     snprintf(buf, sizeof(buf), "%lld", x);
@@ -22,7 +28,7 @@ void test_int64() {
     x = ((int64)1 << 62);
     snprintf(buf, sizeof(buf), "%lld", x);
     ASSERT(strcmp(buf, "4611686018427387904")==0, "expected x to be '4611686018427387904' but was '%s'", buf);
-    x = 
+    x =
         ((int64)0x7F) << 56 |
         ((int64)0xFF) << 48 |
         ((int64)0xFF) << 40 |
@@ -73,23 +79,23 @@ int main(int argc, char **argv) {
         } else if (strcmp(argv[i], "sqlite_version") == 0) {
             printf("sqlite v%s\n", lib_version());
             return 0;
-        } else if (strcmp(argv[i], "test") == 0) {            
-            test_int64();
+        } else if (strcmp(argv[i], "test") == 0) {
+            test_platform();
             test_dbuf();
+            test_dbuf_double();
             test_conn(dbfile);
             test_handler_versions();
             test_handler_functions(dbfile);
             test_handler_exec_query(dbfile);
             test_handler_errors();
             bench_dbuf(2);
-            bench_conn_users(dbfile, 2, TRUE);
+            bench_conn_users(dbfile, 2);
             bench_conn_complex(dbfile, 2,2,2);
             ASSERT(mem_usage()==0, "mem_usage: %d\n", mem_usage());
             return 0;
         } else if (strcmp(argv[i], "bench") == 0) {
             bench_dbuf(100);
-            bench_conn_users(dbfile, 1000*1000, FALSE);
-            bench_conn_users(dbfile, 1000*1000, TRUE);
+            bench_conn_users(dbfile, 1000*1000);
             bench_conn_complex(dbfile, 200,100,10);
             ASSERT(mem_usage()==0, "mem_usage: %d\n", mem_usage());
             return 0;

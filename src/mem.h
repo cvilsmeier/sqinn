@@ -17,7 +17,7 @@ typedef struct {
     size_t cap;  // capacity of buf
     size_t sz;   // size of bytes in buf
     byte *buf;   // byte buffer in memory
-    int off;   // read offset
+    int off;     // read offset
 } dbuf;
 
 dbuf *dbuf_new();
@@ -37,8 +37,10 @@ void dbuf_write_string(dbuf *this, const char *str);
 const char *dbuf_read_string(dbuf *this);
 void dbuf_write_blob(dbuf *this, const byte *data, int len);
 const byte *dbuf_read_blob(dbuf *this, int *len);
-void dbuf_write_double(dbuf *this, double value);
-double dbuf_read_double(dbuf *this);
+void dbuf_write_double_str(dbuf *this, double value);
+double dbuf_read_double_str(dbuf *this);
+void dbuf_write_double_ieee(dbuf *this, double value);
+double dbuf_read_double_ieee(dbuf *this);
 
 #endif // _MEM_H
 

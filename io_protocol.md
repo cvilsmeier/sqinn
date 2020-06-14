@@ -20,8 +20,8 @@ message (string value) follows, describing the error that occurred.
 
 Example:
 
-For opening a sqlite database file, function code 1 (FC\_OPEN) is used. The
-single argument to FC\_OPEN is the filename. A sample request looks like this:
+For opening a sqlite database file, function code 1 (FC_OPEN) is used. The
+single argument to FC_OPEN is the filename. A sample request looks like this:
 
     [ 0] 0x0A        FC_OPEN
     [ 1] 0x00        4-byte size of filename plus terminating null (8 in this case)
@@ -37,8 +37,8 @@ single argument to FC\_OPEN is the filename. A sample request looks like this:
     [11] 0x62
     [12] 0x00        1 null byte
 
-Byte 0 is set to 10, which is the numerical code for FC\_OPEN. Bytes 1 to 12
-contain the only argument to FC\_OPEN, which is the filename to be opened.
+Byte 0 is set to 10, which is the numerical code for FC_OPEN. Bytes 1 to 12
+contain the only argument to FC_OPEN, which is the filename to be opened.
 
 For sending the request to Sqinn's stdin, the request has to be preceded by its
 4-byte size N, so that Sqinn knows how many bytes it must read before it can
@@ -146,7 +146,11 @@ Examples:
     (string)"123"   [0x00, 0x00, 0x00, 0x04, 0x31, 0x32, 0x33, 0x00]
 
 
-### double
+### double_ieee
+
+cvvvvvvv TODO
+
+### double_str
 
 A double is a 64-bit floating point value. Since not all programming
 environments use the IEEE-745 format, sqinn encodes a double value as a
@@ -154,7 +158,9 @@ string. The string encoding rules above apply for double values also.
 
 Examples:
 
-    (double)1.2   [0x00, 0x00, 0x00, 0x04, 0x31, 0x2E, 0x320, 0x00]
+    (double)1.2   [0x00, 0x00, 0x00, 0x04, 0x31, 0x2E, 0x32, 0x00]
+
+
 
 
 ### blob
@@ -188,7 +194,7 @@ Since error reponses all look the same, we leave them out in the following
 function descriptions.
 
 
-### FC\_SQINN\_VERSION
+### FC_SQINN_VERSION
 
 This function returns the version of sqinn as a string, e.g. "1.0.0".
 
@@ -202,7 +208,7 @@ This function returns the version of sqinn as a string, e.g. "1.0.0".
         string   version_string        e.g. "1.0.0"
 
 
-### FC\_IO\_VERSION
+### FC_IO_VERSION
 
 This function returns the current IO protocol version as a byte. The version is
 currently always 1 but may change in the future.
@@ -217,7 +223,7 @@ currently always 1 but may change in the future.
         byte     version               currently always 1
 
 
-### FC\_SQLITE\_VERSION
+### FC_SQLITE_VERSION
 
 This function returns the version of the sqlite library as a string, e.g.
 "3.32.1".
@@ -232,7 +238,7 @@ This function returns the version of the sqlite library as a string, e.g.
         int32    version                   e.g. "3.32.1"
 
 
-### FC\_OPEN
+### FC_OPEN
 
 This function opens a database.
 
@@ -246,7 +252,7 @@ This function opens a database.
         bool     true
 
 
-### FC\_PREPARE
+### FC_PREPARE
 
 This function prepares a statement.
 
@@ -260,7 +266,7 @@ This function prepares a statement.
         bool     true
 
 
-### FC\_BIND
+### FC_BIND
 
 This function binds parameter values.
 
@@ -279,7 +285,7 @@ This function binds parameter values.
         bool     true
 
 
-### FC\_STEP
+### FC_STEP
 
 This advances a prepared statement to its next row or to completion.
 
@@ -301,7 +307,7 @@ This advances a prepared statement to its next row or to completion.
                                        fetched with FC_COLUMN.
 
 
-### FC\_RESET
+### FC_RESET
 
 Reset a prepared statement before reusing it.
 
@@ -314,7 +320,7 @@ Reset a prepared statement before reusing it.
         bool     true
 
 
-### FC\_CHANGES
+### FC_CHANGES
 
 Count the number of rows modified by the last executed statement.
 
@@ -328,7 +334,7 @@ Count the number of rows modified by the last executed statement.
         int32    count                 the number of rows modified
 
 
-### FC\_COLUMN
+### FC_COLUMN
 
 Retrieve a column value. When retrieving a column, the caller has to specify
 the type of the value to retrieve. If the value type matches the column type,
@@ -354,7 +360,7 @@ how sqlite does type conversion.
 Please note: If `set` is false, the value result is omitted.
 
 
-### FC\_FINALIZE
+### FC_FINALIZE
 
 Finalizes a statement.
 
@@ -367,7 +373,7 @@ Finalizes a statement.
         bool     true
 
 
-### FC\_CLOSE
+### FC_CLOSE
 
 Closes a database.
 
@@ -380,7 +386,7 @@ Closes a database.
         bool     true
 
 
-### FC\_EXEC
+### FC_EXEC
 
 Executes a statement multiple times.
 
@@ -461,7 +467,7 @@ For the above request, the response might look like this:
   that sql operation.
 
 
-### FC\_QUERY
+### FC_QUERY
 
 Execute a query and fetch all row values in one go.
 

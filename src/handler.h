@@ -23,9 +23,10 @@
 #define VAL_NULL   0
 #define VAL_INT    1
 #define VAL_INT64  2
-#define VAL_DOUBLE 3
+#define VAL_DOUBLE_STR 3
 #define VAL_TEXT   4
 #define VAL_BLOB   5
+#define VAL_DOUBLE_IEEE 6
 
 // handler struct
 

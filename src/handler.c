@@ -42,9 +42,14 @@ int _bind_param(conn *con, int iparam, dbuf *req, char *errmsg, int maxerrmsg) {
             int64 ival = dbuf_read_int64(req);
             return conn_bind_int64(con, iparam, ival, errmsg, maxerrmsg);
         }
-        case VAL_DOUBLE:
+        case VAL_DOUBLE_STR:
         {
-            double dval = dbuf_read_double(req);
+            double dval = dbuf_read_double_str(req);
+            return conn_bind_double(con, iparam, dval, errmsg, maxerrmsg);
+        }
+        case VAL_DOUBLE_IEEE:
+        {
+            double dval = dbuf_read_double_ieee(req);
             return conn_bind_double(con, iparam, dval, errmsg, maxerrmsg);
         }
         case VAL_TEXT:
@@ -85,12 +90,21 @@ int _column(conn *con, byte val_type, int icol, dbuf *dest, char *errmsg, int ma
             }
             return SQLITE_OK;
         }
-        case VAL_DOUBLE: {
+        case VAL_DOUBLE_STR: {
             double dval;
             conn_column_double(con, icol, &set, &dval);
             dbuf_write_bool(dest, set);
             if (set) {
-                dbuf_write_double(dest, dval);
+                dbuf_write_double_str(dest, dval);
+            }
+            return SQLITE_OK;
+        }
+        case VAL_DOUBLE_IEEE: {
+            double dval;
+            conn_column_double(con, icol, &set, &dval);
+            dbuf_write_bool(dest, set);
+            if (set) {
+                dbuf_write_double_ieee(dest, dval);
             }
             return SQLITE_OK;
         }

@@ -49,8 +49,20 @@ tested it on the following platforms:
 - Raspbian Linux arm (Raspberry Pi)
 - Darwin amd64 (MacOS)
 
-The releases page contains a tar file with pre-built binaries which you can try
-out, see <https://github.com/cvilsmeier/sqinn/releases>.
+The releases page contains a tar file with pre-built binaries which you can
+try out, see <https://github.com/cvilsmeier/sqinn/releases>.
+
+If you want to compile Sqinn, have gcc installed and follow the steps:
+
+        $ git clone https://github.com/cvilsmeier/sqinn
+        $ cd sqinn
+        $ chmod a+x build.sh clean.sh
+        $ ./build.sh
+
+The build script creates a `bin` subdirectory that the build results go into.
+Test it with:
+
+        $ bin/sqinn test
 
 
 Command line usage
@@ -104,6 +116,16 @@ extension functions are not supported, among others.
 As of now, Sqinn does not support multiple active statements at a
 time. If a caller tries to prepare a statement while another one is still
 active (i.e. un-finalized), Sqinn will bark.
+
+
+Changelog
+-------------------------------------------------------------------------------
+
+### v1.0.0 (2020-06-10)
+- first version
+
+### v1.1.0 (2020-06-14)
+- fast IEEE 745 encoding for double values
 
 
 License

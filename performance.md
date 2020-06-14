@@ -12,8 +12,8 @@ not impose a lot of work on the database, the marshalling overhead becomes
 significat. For complex queries that take a long time to execute, the
 marshalling overhead becomes negligible.
 
-Here are some benchmarks using Sqinn with SQLite library version 3.32.1
-(2020-05-25), compiled on Windows 10, Mingw64, with TDM-GCC-64.
+Here are some benchmarks using Sqinn with SQLite library version 3.32.2
+(2020-06-04), compiled on Windows 10, Mingw64, with TDM-GCC-64.
 
 - OS: Windows 10 Home x64 Version 1909 Build 18363
 - CPU: Intel(R) Core(TM) i7-6700HQ CPU @ 2.60GHz, 2592 MHz, 4 Cores
@@ -36,49 +36,38 @@ afterwards. The table schema is as follows:
         rating REAL
     );
 
-The database is disk-based to simulate the real world. The database is
-initially empty. All inserts take place in a single transaction. The results
-are (lower numbers are better):
+The database is disk-based to simulate the real world. All inserts take place
+in a single transaction. The results are (lower numbers are better):
 
     +----------------+---------+---------+
     |                | insert  | query   |
     +----------------+---------+---------+
-    | SQLite C API   | 1.1 s   | 0.2 s   |
-    | Sqinn          | 2.5 s   | 2.2 s   |
+    | C API          | 1.0 s   | 0.2 s   |
+    | Sqinn          | 1.6 s   | 1.4 s   |
     +----------------+---------+---------+
 
-Inserting 1 million rows takes twice as long, querying them takes 11 times
-as long. The time is mostly lost in marshalling, especially the column type
-`REAL` is time consuming: It takes a lot of CPU cycles to convert a floating
-point number into a string and back. The same benchmark without that
-conversion gives the following result:
-
-    +----------------+---------+---------+
-    |                | insert  | query   |
-    +----------------+---------+---------+
-    | SQLite C API   | 1.1 s   | 0.2 s   |
-    | Sqinn          | 1.5 s   | 1.3 s   |
-    +----------------+---------+---------+
-
-Insert is getting closer to the C API. That seems reasonable: Inserting data
-is a lot of work for the database, so the marshalling overhead is
-comparatively small. Querying however is fast at the database level,
-therefore the marshalling overhead plays a big role here, Sqinn is 6 to 7
-times slower that direct API calls.
+Insert takes 60% longer than the C API, query takes 700% longer. That seems
+reasonable: Inserting data is a lot of work for the database, so the
+marshalling overhead is comparatively small. Querying however is fast at the
+database level, therefore the marshalling overhead plays a big role here.
 
 
 ## Benchmark 2
 
-The second benchmark uses a more complex schema: 3 tables, many foreign key
-constraints, many indices. For details see function `bench_conn_complex()` in
+The second benchmark uses a more complex schema: 3 tables, with foreign key
+constraints and indices. For details see function `bench_conn_complex()` in
 `src/conn_test.c`. The results are (lower numbers are better):
 
     +----------------+---------+---------+
     |                | insert  | query   |
     +----------------+---------+---------+
-    | SQLite C API   | 1.3 s   | 0.4 s   |
-    | Sqinn          | 1.7 s   | 1.2 s   |
+    | C API          | 1.4 s   | 0.5 s   |
+    | Sqinn          | 1.7 s   | 1.3 s   |
     +----------------+---------+---------+
+
+Insert takes 20% longer than the C API, query takes 260% longer. That seems
+also reasonable: Compared to Benchmark 1, the database has more work to do,
+therefore the relative performance of Sqinn goes up.
 
 
 ## Summary
