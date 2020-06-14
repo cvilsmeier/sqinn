@@ -148,12 +148,19 @@ Examples:
 
 ### double_ieee
 
-cvvvvvvv TODO
+A double_ieee is a 64-bit floating point, ecoded as a IEEE 745 binary64 8-byte
+sequence.
+
+Examples:
+
+    (double)2   [0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+    (double)-2  [0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+
 
 ### double_str
 
-A double is a 64-bit floating point value. Since not all programming
-environments use the IEEE-745 format, sqinn encodes a double value as a
+A double_str is a 64-bit floating point. Since not all programming
+environments understand the IEEE-745 format, sqinn encodes a double_str value as a
 string. The string encoding rules above apply for double values also.
 
 Examples:
