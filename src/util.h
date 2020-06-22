@@ -8,7 +8,7 @@
 
 // versions
 
-#define SQINN_VERSION "1.1.0" // sync with README
+#define SQINN_VERSION "1.1.1" // sync with README
 #define IO_VERSION    1
 
 // types

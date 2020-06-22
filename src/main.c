@@ -87,11 +87,13 @@ int main(int argc, char **argv) {
             test_handler_versions();
             test_handler_functions(dbfile);
             test_handler_exec_query(dbfile);
+            test_handler_exec_failure(dbfile);
             test_handler_errors();
             bench_dbuf(2);
             bench_conn_users(dbfile, 2);
             bench_conn_complex(dbfile, 2,2,2);
             ASSERT(mem_usage()==0, "mem_usage: %d\n", mem_usage());
+            printf("All Tests OK\n");
             return 0;
         } else if (strcmp(argv[i], "bench") == 0) {
             bench_dbuf(100);

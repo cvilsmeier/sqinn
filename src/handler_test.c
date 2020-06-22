@@ -493,6 +493,88 @@ void test_handler_exec_query(const char *dbfile) {
     INFO("TEST %s OK\n", __func__);
 }
 
+void test_handler_exec_failure(const char *dbfile) {
+    INFO("TEST %s\n", __func__);
+    DEBUG("  dbfile=%s\n", dbfile);
+    handler *hd = handler_new();
+    dbuf *req = dbuf_new();
+    dbuf *resp = dbuf_new();
+    {
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_OPEN);
+        dbuf_write_string(req, dbfile);
+        handler_handle(hd, req, resp);
+        bool ok = dbuf_read_bool(resp);        
+        ASSERT(ok, "expected ok but ok was %d", ok);
+    }
+    {
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_EXEC);
+        dbuf_write_string(req, "DROP TABLE IF EXISTS users");
+        dbuf_write_int32(req, 1); // niterations
+        dbuf_write_int32(req, 0); // nparams per iteration
+        handler_handle(hd, req, resp);
+        bool ok = dbuf_read_bool(resp);        
+        ASSERT(ok, "expected ok but ok was %d", ok);
+        int changes = dbuf_read_int32(resp);
+        ASSERT(changes==0, "expected 0 changes but was %d", changes);
+    }
+    {
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_EXEC);
+        dbuf_write_string(req, "CREATE TABLE users (id INTEGER NOT NULL)");
+        dbuf_write_int32(req, 1); // niterations
+        dbuf_write_int32(req, 0); // nparams per iteration
+        handler_handle(hd, req, resp);
+        bool ok = dbuf_read_bool(resp);        
+        ASSERT(ok, "expected ok but ok was %d", ok);
+        int changes = dbuf_read_int32(resp);
+        ASSERT(changes==0, "expected 0 changes but was %d", changes);
+    }
+    {
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_EXEC);
+        dbuf_write_string(req, "INSERT INTO users (id) VALUES (?)");
+        dbuf_write_int32(req, 1); // niterations
+        dbuf_write_int32(req, 1); // nparams per iteration
+        dbuf_write_byte(req, VAL_NULL); // col_type
+        handler_handle(hd, req, resp);
+        bool ok = dbuf_read_bool(resp);        
+        ASSERT(!ok, "expected !ok but ok was %d", ok);
+        const char *errmsg = dbuf_read_string(resp);
+        ASSERT(strcmp(errmsg, "sqlite3_step: err=19, msg=NOT NULL constraint failed: users.id")==0, "wrong errmsg '%s'", errmsg);
+    }
+    {
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_EXEC);
+        dbuf_write_string(req, "INSERT INTO users (id) VALUES (?)");
+        dbuf_write_int32(req, 1); // niterations
+        dbuf_write_int32(req, 1); // nparams per iteration
+        dbuf_write_byte(req, VAL_INT); // col_type
+        dbuf_write_int32(req, 42); // id=42
+        handler_handle(hd, req, resp);
+        bool ok = dbuf_read_bool(resp);        
+        ASSERT(ok, "expected ok but ok was %d", ok);
+    }
+    {
+        dbuf_reset(req);
+        dbuf_reset(resp);
+        dbuf_write_byte(req, FC_CLOSE);
+        handler_handle(hd, req, resp);
+        bool ok = dbuf_read_bool(resp);        
+        ASSERT(ok, "expected ok but ok was %d", ok);
+    }
+    dbuf_free(req);
+    dbuf_free(resp);
+    handler_free(hd);
+    INFO("TEST %s OK\n", __func__);
+}
+
 void test_handler_errors() {
     INFO("TEST %s\n", __func__);
     handler *hd = handler_new();

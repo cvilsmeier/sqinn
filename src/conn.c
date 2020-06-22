@@ -36,6 +36,7 @@ int conn_prepare(conn *this, const char *sql, char *errmsg, int maxerrmsg) {
     }
     int err = sqlite3_prepare_v2(this->db, sql, -1, &this->stmt, 0);
     if (err != SQLITE_OK) {
+        this->stmt = NULL;
         snprintf(errmsg, maxerrmsg, "sqlite3_prepare_v2: err=%d, msg=%s", err, sqlite3_errmsg(this->db));
     }
     return err;
@@ -162,14 +163,9 @@ void conn_column_blob(conn *this, int icol, bool *set, const byte **pvalue, int 
     }
 }
 
-int conn_finalize(conn *this, char *errmsg, int maxerrmsg) {
-    int err = sqlite3_finalize(this->stmt);
-    if (err == SQLITE_OK) {
-        this->stmt = NULL;
-    } else {
-        snprintf(errmsg, maxerrmsg, "sqlite3_finalize: err=%d, msg=%s", err, sqlite3_errmsg(this->db));
-    }
-    return err;
+void conn_finalize(conn *this) {
+    sqlite3_finalize(this->stmt);
+    this->stmt = NULL;
 }
 
 int conn_close(conn *this, char *errmsg, int maxerrmsg) {

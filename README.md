@@ -131,6 +131,11 @@ Changelog
 - fast IEEE 745 encoding for double values
 
 
+### v1.1.1 (2020-06-22)
+
+- fix unsuccessful FC_EXEC/QUERY leaked prepared statement
+
+
 License
 -------------------------------------------------------------------------------
 

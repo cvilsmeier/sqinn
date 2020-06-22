@@ -240,8 +240,8 @@ void handler_handle(handler *this, dbuf *req, dbuf *resp) {
         break;
         case FC_FINALIZE:
         {
-            int err = conn_finalize(con, errmsg, MAX_ERRMSG);
-            _write_ok_or_err(err, errmsg, resp);
+            conn_finalize(con);
+            _write_ok_or_err(SQLITE_OK, errmsg, resp);
         }
         break;
         case FC_CLOSE:
@@ -253,16 +253,13 @@ void handler_handle(handler *this, dbuf *req, dbuf *resp) {
         case FC_EXEC:
         {
             const char *sql = dbuf_read_string(req);
-            int err = SQLITE_OK;
-            bool prepared = TRUE;
+            bool prepared = FALSE;
+            int err = conn_prepare(con, sql, errmsg, MAX_ERRMSG);
+            if (!err) {
+                prepared = TRUE;
+            }
             int niterations = 0;
             int *changes = NULL;
-            if (!err) {
-                err = conn_prepare(con, sql, errmsg, MAX_ERRMSG);
-                if (err) {
-                    prepared = FALSE;
-                }
-            }
             if (!err) {
                 niterations = dbuf_read_int32(req);                
                 int nparams = dbuf_read_int32(req);
@@ -284,12 +281,8 @@ void handler_handle(handler *this, dbuf *req, dbuf *resp) {
                     }
                 }
             }
-            if (!err) {
-                err = conn_finalize(con, errmsg, MAX_ERRMSG);
-            } else {
-                if (prepared) {
-                    conn_finalize(con, errmsg, MAX_ERRMSG);
-                }
+            if (prepared) {
+                conn_finalize(con);
             }
             _write_ok_or_err(err, errmsg, resp);
             if (!err) {
@@ -303,31 +296,22 @@ void handler_handle(handler *this, dbuf *req, dbuf *resp) {
         case FC_QUERY:
         {
             dbuf *vbuf = dbuf_new();
-            int nrows = 0;
-            int err = SQLITE_OK;
-            bool prepared = TRUE;
+            const char *sql = dbuf_read_string(req);
+            bool prepared = FALSE;
+            int err = conn_prepare(con, sql, errmsg, MAX_ERRMSG);
             if (!err) {
-                const char *sql = dbuf_read_string(req);
-                err = conn_prepare(con, sql, errmsg, MAX_ERRMSG);
-                if (err) {
-                    prepared = FALSE;
-                }
-            }
-            if (!err) {
+                prepared = TRUE;
                 int nparams = dbuf_read_int32(req);
                 for (int iparam=1 ; !err && iparam<=nparams ; iparam++) {
                     err = _bind_param(con, iparam, req, errmsg, MAX_ERRMSG);
                 }
             }
+            int nrows = 0;
             if (!err) {
                 err = _fetch_rows(con, req, &nrows, vbuf, errmsg, MAX_ERRMSG);
             }
-            if (!err) {
-                err = conn_finalize(con, errmsg, MAX_ERRMSG);
-            } else {
-                if (prepared) {
-                    conn_finalize(con, errmsg, MAX_ERRMSG);
-                }
+            if (prepared) {
+                conn_finalize(con);
             }
             _write_ok_or_err(err, errmsg, resp);
             if (!err) {

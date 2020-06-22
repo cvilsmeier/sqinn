@@ -10,8 +10,7 @@ void _prepare_step_finalize(conn *con, const char *sql, char *errmsg, int maxerr
     err = conn_step(con, &more, errmsg, maxerrmsg);
     ASSERT(!err, "step err '%s'", errmsg);
     ASSERT(!more, "wrong more %d", more);
-    err = conn_finalize(con, errmsg, maxerrmsg);
-    ASSERT(!err, "finalize err %s", errmsg);
+    conn_finalize(con);
 }
 
 void test_conn(const char *dbfile) {
@@ -26,14 +25,12 @@ void test_conn(const char *dbfile) {
     ASSERT(!err, "wrong err %d", err);
     err = conn_step(con, NULL, errmsg, MAX_ERRMSG);
     ASSERT(!err, "wrong err %d", err);
-    err = conn_finalize(con, errmsg, MAX_ERRMSG);
-    ASSERT(!err, "wrong err %d", err);
+    conn_finalize(con);
     err = conn_prepare(con, "CREATE TABLE users (id INTEGER PRIMARY KEY NOT NULL, name VARCHAR, age INTEGER, rating REAL)", errmsg, MAX_ERRMSG);
     ASSERT(!err, "wrong err %d", err);
     err = conn_step(con, NULL, errmsg, MAX_ERRMSG);
     ASSERT(!err, "wrong err %d", err);
-    err = conn_finalize(con, errmsg, MAX_ERRMSG);
-    ASSERT(!err, "wrong err %d", err);
+    conn_finalize(con);
     // insert users without parameters
     err = conn_prepare(con, "INSERT INTO users (id,name,age,rating) VALUES(1, 'Alice', 31, 0.1)", errmsg, MAX_ERRMSG);
     ASSERT(!err, "wrong err %d", err);
@@ -42,8 +39,7 @@ void test_conn(const char *dbfile) {
     int changes;
     conn_changes(con, &changes);
     ASSERT(changes==1, "wrong changes %d", changes);
-    err = conn_finalize(con, errmsg, MAX_ERRMSG);
-    ASSERT(!err, "wrong err %d", err);
+    conn_finalize(con);
     // insert users with parameters
     err = conn_prepare(con, "INSERT INTO users (id,name,age,rating) VALUES(?,?,?,?)", errmsg, MAX_ERRMSG);
     ASSERT(!err, "wrong err %d", err);
@@ -77,8 +73,7 @@ void test_conn(const char *dbfile) {
     ASSERT(changes==1, "wrong changes %d", changes);
     err = conn_reset(con, errmsg, MAX_ERRMSG);
     ASSERT(!err, "wrong err %d", err);
-    err = conn_finalize(con, errmsg, MAX_ERRMSG);
-    ASSERT(!err, "wrong err %d", err);
+    conn_finalize(con);
     // select users
     err = conn_prepare(con, "SELECT id,name,age,rating FROM users ORDER BY id", errmsg, MAX_ERRMSG);
     ASSERT(!err, "wrong err %d", err);
@@ -103,8 +98,7 @@ void test_conn(const char *dbfile) {
         ASSERT(!err, "wrong err %d", err);
     }
     ASSERT(nrows == 3, "want 3 rows but have %d", (int)nrows);
-    err = conn_finalize(con, errmsg, MAX_ERRMSG);
-    ASSERT(!err, "wrong err %d", err);
+    conn_finalize(con);
     // delete users
     err = conn_prepare(con, "DELETE FROM users WHERE name = 'does_not_exist'", errmsg, MAX_ERRMSG);
     ASSERT(!err, "wrong err %d", err);
@@ -112,16 +106,14 @@ void test_conn(const char *dbfile) {
     ASSERT(!err, "wrong err %d", err);
     conn_changes(con, &changes);
     ASSERT(changes==0, "wrong changes %d", changes);
-    err = conn_finalize(con, errmsg, MAX_ERRMSG);
-    ASSERT(!err, "wrong err %d", err);
+    conn_finalize(con);
     err = conn_prepare(con, "DELETE FROM users WHERE id >= 0", errmsg, MAX_ERRMSG);
     ASSERT(!err, "wrong err %d", err);
     err = conn_step(con, NULL, errmsg, MAX_ERRMSG);
     ASSERT(!err, "wrong err %d", err);
     conn_changes(con, &changes);
     ASSERT(changes==3, "wrong changes %d", changes);
-    err = conn_finalize(con, errmsg, MAX_ERRMSG);
-    ASSERT(!err, "wrong err %d", err);
+    conn_finalize(con);
     // close db
     err = conn_close(con, errmsg, MAX_ERRMSG);
     ASSERT(!err, "wrong err %d", err);
@@ -155,7 +147,7 @@ void bench_conn_users(const char *dbfile, int nusers) {
         conn_step(con, NULL, errmsg, MAX_ERRMSG);
         conn_reset(con, errmsg, MAX_ERRMSG);
     }
-    conn_finalize(con, errmsg, MAX_ERRMSG);
+    conn_finalize(con);
     _prepare_step_finalize(con, "COMMIT", errmsg, MAX_ERRMSG);
     DEBUG("  insert took %f s\n", mono_since(tstart));
     // select users
@@ -178,7 +170,7 @@ void bench_conn_users(const char *dbfile, int nusers) {
         conn_step(con, &more, errmsg, MAX_ERRMSG);
     }
     ASSERT(nrows == nusers, "want %d rows but have %d", nusers, nrows);
-    conn_finalize(con, errmsg, MAX_ERRMSG);
+    conn_finalize(con);
     DEBUG("  query took %f s\n", mono_since(tstart));
     // close db
     conn_close(con, errmsg, MAX_ERRMSG);
@@ -224,7 +216,7 @@ void bench_conn_complex(const char *dbfile, int nprofiles, int ndevices, int nlo
         conn_step(con, NULL, errmsg, MAX_ERRMSG);
         conn_reset(con, errmsg, MAX_ERRMSG);
     }
-    conn_finalize(con, errmsg, MAX_ERRMSG);
+    conn_finalize(con);
     _prepare_step_finalize(con, "COMMIT", errmsg, MAX_ERRMSG);
     // insert users
     _prepare_step_finalize(con, "BEGIN", errmsg, MAX_ERRMSG);
@@ -246,7 +238,7 @@ void bench_conn_complex(const char *dbfile, int nprofiles, int ndevices, int nlo
             conn_reset(con, errmsg, MAX_ERRMSG);
         }
     }
-    conn_finalize(con, errmsg, MAX_ERRMSG);
+    conn_finalize(con);
     _prepare_step_finalize(con, "COMMIT", errmsg, MAX_ERRMSG);
     // insert locations
     _prepare_step_finalize(con, "BEGIN", errmsg, MAX_ERRMSG);
@@ -270,7 +262,7 @@ void bench_conn_complex(const char *dbfile, int nprofiles, int ndevices, int nlo
             }
         }
     }
-    conn_finalize(con, errmsg, MAX_ERRMSG);
+    conn_finalize(con);
     _prepare_step_finalize(con, "COMMIT", errmsg, MAX_ERRMSG);
     DEBUG("  insert took %f s\n", mono_since(tstart));
     // query
@@ -335,8 +327,7 @@ void bench_conn_complex(const char *dbfile, int nprofiles, int ndevices, int nlo
     }
     int exprows = nprofiles * ndevices * nlocations;
     ASSERT(nrows==exprows, "expected %d rows but have %d", exprows, nrows);
-    err = conn_finalize(con, errmsg, MAX_ERRMSG);
-    ASSERT(!err, "err %s", errmsg);
+    conn_finalize(con);
     DEBUG("  query took %f s\n", mono_since(tstart));
     // close db
     conn_close(con, errmsg, MAX_ERRMSG);

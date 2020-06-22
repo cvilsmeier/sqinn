@@ -29,7 +29,7 @@ void conn_column_int64(conn *this, int icol, bool *set, int64 *value);
 void conn_column_double(conn *this, int icol, bool *set, double *value);
 void conn_column_text(conn *this, int icol, bool *set, const char **pvalue);
 void conn_column_blob(conn *this, int icol, bool *set, const byte **pvalue, int *len);
-int conn_finalize(conn *this, char *errmsg, int maxerrmsg);
+void conn_finalize(conn *this);
 int conn_close(conn *this, char *errmsg, int maxerrmsg);
 
 #endif // _CONN_H
