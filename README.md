@@ -134,6 +134,7 @@ Changelog
 ### v1.1.1 (2020-06-22)
 
 - fix unsuccessful FC_EXEC/QUERY leaked prepared statement
+- sqlite v3.32.3
 
 
 License
