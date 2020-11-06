@@ -248,9 +248,9 @@ void bench_conn_complex(const char *dbfile, int nprofiles, int ndevices, int nlo
             char device_id[32];
             sprintf(device_id, "device_%d_%d", p, d);
             for (int l=0 ; l<nlocations ; l++) {
-                char location_id[32];
+                char location_id[64];
                 sprintf(location_id, "location_%d_%d_%d", p, d, l);
-                char name[32];
+                char name[64];
                 sprintf(name, "Location %d %d %d", p, d, l);
                 int active = l%2;
                 conn_bind_text(con, 1, location_id, errmsg, MAX_ERRMSG);

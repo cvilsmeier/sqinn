@@ -4,11 +4,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <inttypes.h>
+// cvvvvv #include <inttypes.h>
 
 // versions
 
-#define SQINN_VERSION "1.1.1" // sync with README
+#define SQINN_VERSION "1.1.2" // sync in README
 #define IO_VERSION    1
 
 // types
@@ -18,6 +18,15 @@ typedef long long int int64;
 typedef char bool;
 #define TRUE   1
 #define FALSE  0
+
+// printf int64
+#if defined(_WIN32) || defined(__MINGW64__)
+    #define FMT_PRId64 "I64d"
+    #define FMT_PRIu64 "I64u"
+#else
+    #define FMT_PRId64 "lld"
+    #define FMT_PRIu64 "llu"
+#endif
 
 // logging
 

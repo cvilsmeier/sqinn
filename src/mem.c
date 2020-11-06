@@ -94,7 +94,7 @@ void dbuf_write_bytes(dbuf *this, const void *buf, size_t len) {
 
 byte *_dbuf_read_bytes(dbuf *this, size_t len) {
     size_t left = this->sz - this->off;
-    ASSERT(left >= len, "dbuf read beyond limit: left=%"PRIu64", len=%"PRIu64, left, len);
+    ASSERT(left >= len, "dbuf read beyond limit: left=%"FMT_PRIu64", len=%"FMT_PRIu64, left, len);
     byte *p = &this->buf[this->off];
     this->off += len;
     return p;

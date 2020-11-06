@@ -146,7 +146,7 @@ void bench_dbuf(int nrounds) {
             int i32 = dbuf_read_int32(req);
             ASSERT(i32 == 100, "wrong %d", i32);
             int64 i64 = dbuf_read_int64(req);
-            ASSERT(i64 == ((int64)2 << 60) + 3, "wrong i64 %"PRId64, i64);
+            ASSERT(i64 == ((int64)2 << 60) + 3, "wrong i64 %"FMT_PRId64, i64);
             double d_str = dbuf_read_double_str(req);
             ASSERT(d_str == 128.25, "wrong d_str %g", d_str);
             double d_ieee = dbuf_read_double_ieee(req);

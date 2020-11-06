@@ -44,7 +44,7 @@ Compiling with gcc
 See the included `build.sh` script for compiling Sqinn with `gcc`. I have
 tested it on the following platforms:
 
-- Windows 10 amd64, using Mingw64 gcc
+- Windows 10 amd64, using Mingw64 gcc (tdm64-gcc-9.2.0 from https://jmeubank.github.io/tdm-gcc/)
 - Debian Linux 10 amd64
 - Raspbian Linux arm (Raspberry Pi)
 - Darwin amd64 (MacOS)
@@ -121,9 +121,15 @@ active (i.e. un-finalized), Sqinn will bark.
 Changelog
 -------------------------------------------------------------------------------
 
-### v1.0.0 (2020-06-10)
+### v1.1.2 (2020-11-06)
 
-- first version
+- sqlite v3.33.0
+
+
+### v1.1.1 (2020-06-22)
+
+- fix unsuccessful FC_EXEC/QUERY leaked prepared statement
+- sqlite v3.32.3
 
 
 ### v1.1.0 (2020-06-14)
@@ -131,10 +137,9 @@ Changelog
 - fast IEEE 745 encoding for double values
 
 
-### v1.1.1 (2020-06-22)
+### v1.0.0 (2020-06-10)
 
-- fix unsuccessful FC_EXEC/QUERY leaked prepared statement
-- sqlite v3.32.3
+- first version
 
 
 License

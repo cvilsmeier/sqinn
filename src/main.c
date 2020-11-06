@@ -11,11 +11,17 @@
 
 void test_platform() {
     INFO("TEST %s\n", __func__);
-    DEBUG("  sizeof(int)=%d, sizeof(size_t)=%d, sizeof(int64)=%d, PRIu64=%s, PRId64=%s\n", sizeof(int), sizeof(size_t), sizeof(int64), PRIu64, PRId64);
+    DEBUG("sizeof(int)=%d\n", sizeof(int));
+    DEBUG("sizeof(size_t)=%d\n", sizeof(size_t));
+    DEBUG("sizeof(int64)=%d\n", sizeof(int64));
+    // cvvvvvvvvv DEBUG("PRIu64=%s\n", PRIu64);
+    // cvvvvvvvvv DEBUG("PRId64=%s\n", PRId64);
+    DEBUG("FMT_PRId64=%s\n", FMT_PRId64);
+    DEBUG("FMT_PRIu64=%s\n", FMT_PRIu64);
     ASSERT(sizeof(int)==4, "expected int to be 4 bytes but was %d", sizeof(size_t));
-    ASSERT(sizeof(size_t)==8 || sizeof(size_t)==4, "expected size_t to be 8 or 4 bytes but was %"PRIu64, sizeof(size_t));
-    ASSERT(sizeof(int64)==8, "expected int64 to be 8 bytes but was %"PRIu64, sizeof(int64));
-    ASSERT(sizeof(double)==8, "expected double to be 8 bytes but was %"PRIu64, sizeof(double));
+    ASSERT(sizeof(size_t)==8 || sizeof(size_t)==4, "expected size_t to be 8 or 4 bytes but was %"FMT_PRIu64, sizeof(size_t));
+    ASSERT(sizeof(int64)==8, "expected int64 to be 8 bytes but was %"FMT_PRIu64, sizeof(int64));
+    ASSERT(sizeof(double)==8, "expected double to be 8 bytes but was %"FMT_PRIu64, sizeof(double));
     double dbl = -2; // in IEEE 745 it's hex(C000 0000 0000 0000)
     byte dbl0 = ((char*)&dbl)[0];
     byte dbl7 = ((char*)&dbl)[7];
@@ -23,10 +29,10 @@ void test_platform() {
     ASSERT(dbl7== 0xC0, "expected double -2 [7] 0xC0 but was %02X", dbl7);
     char buf[64];
     int64 x = ((int64)1 << 63);
-    snprintf(buf, sizeof(buf), "%lld", x);
+    snprintf(buf, sizeof(buf), "%"FMT_PRId64, x);
     ASSERT(strcmp(buf, "-9223372036854775808")==0, "expected x to be '-9223372036854775808' but was '%s'", buf);
     x = ((int64)1 << 62);
-    snprintf(buf, sizeof(buf), "%lld", x);
+    snprintf(buf, sizeof(buf), "%"FMT_PRId64, x);
     ASSERT(strcmp(buf, "4611686018427387904")==0, "expected x to be '4611686018427387904' but was '%s'", buf);
     x =
         ((int64)0x7F) << 56 |
@@ -37,7 +43,7 @@ void test_platform() {
         ((int64)0xFF) << 16 |
         ((int64)0xFF) <<  8 |
         ((int64)0xFF) <<  0;
-    snprintf(buf, sizeof(buf), "%lld", x);
+    snprintf(buf, sizeof(buf), "%"FMT_PRId64, x);
     ASSERT(strcmp(buf, "9223372036854775807")==0, "expected x to be '9223372036854775807' but was '%s'", buf);
     INFO("TEST %s OK\n", __func__);
 }
@@ -73,7 +79,7 @@ int main(int argc, char **argv) {
                 "\n"
                 "For more details see https://www.github.com/cvilsmeier/sqinn\n");
             return 0;
-        } else if (strcmp(argv[i], "version") == 0) {
+        } else if (strcmp(argv[i], "version") == 0 || strcmp(argv[i], "--version") == 0) {
             printf("sqinn v%s\n", SQINN_VERSION);
             return 0;
         } else if (strcmp(argv[i], "sqlite_version") == 0) {

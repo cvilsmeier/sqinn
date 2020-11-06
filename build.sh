@@ -32,3 +32,18 @@ gcc $FLAGS -o bin/sqinn \
     src/main.c \
     bin/sqlite3.o
 
+echo build-info
+BUILDINFO="bin/build-info.txt"
+date                      > $BUILDINFO
+echo                     >> $BUILDINFO
+echo "uname --all"       >> $BUILDINFO
+uname --all              >> $BUILDINFO
+echo                     >> $BUILDINFO
+echo "gcc --version"     >> $BUILDINFO
+gcc --version            >> $BUILDINFO
+echo                     >> $BUILDINFO
+echo "file bin/sqinn"    >> $BUILDINFO
+file bin/sqinn           >> $BUILDINFO
+
+
+
