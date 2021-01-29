@@ -4,11 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-// cvvvvv #include <inttypes.h>
 
 // versions
 
-#define SQINN_VERSION "1.1.2" // sync in README
+#define SQINN_VERSION "1.1.4" // sync in README
 #define IO_VERSION    1
 
 // types

@@ -17,7 +17,7 @@ void test_handler_versions() {
     handler_handle(hd, req, resp);
     ASSERT0(dbuf_read_bool(resp), "was not ok");
     const char *sqinn_version = dbuf_read_string(resp);
-    ASSERT(strcmp(sqinn_version, "1.1.2")==0, "wrong sqinn_version %s", sqinn_version);
+    ASSERT(strcmp(sqinn_version, "1.1.4")==0, "wrong sqinn_version %s", sqinn_version);
     // io protocol version
     dbuf_reset(req);
     dbuf_reset(resp);

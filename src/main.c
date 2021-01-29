@@ -14,8 +14,6 @@ void test_platform() {
     DEBUG("sizeof(int)=%d\n", sizeof(int));
     DEBUG("sizeof(size_t)=%d\n", sizeof(size_t));
     DEBUG("sizeof(int64)=%d\n", sizeof(int64));
-    // cvvvvvvvvv DEBUG("PRIu64=%s\n", PRIu64);
-    // cvvvvvvvvv DEBUG("PRId64=%s\n", PRId64);
     DEBUG("FMT_PRId64=%s\n", FMT_PRId64);
     DEBUG("FMT_PRIu64=%s\n", FMT_PRIu64);
     ASSERT(sizeof(int)==4, "expected int to be 4 bytes but was %d", sizeof(size_t));
@@ -108,7 +106,10 @@ int main(int argc, char **argv) {
             ASSERT(mem_usage()==0, "mem_usage: %d\n", mem_usage());
             return 0;
         } else if (strcmp(argv[i], "-db") == 0) {
-            strncpy(dbfile, argv[i+1], sizeof(dbfile));
+            if (i<argc-1) {
+                strncpy(dbfile, argv[i+1], sizeof(dbfile));
+                i++;
+            }
         }
     }
 #if defined(_WIN32) || defined(__MINGW64__)

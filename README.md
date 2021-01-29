@@ -121,6 +121,14 @@ active (i.e. un-finalized), Sqinn will bark.
 Changelog
 -------------------------------------------------------------------------------
 
+See version in src/util.h
+
+
+### v1.1.4 (2021-01-29)
+
+- fixed version number
+
+
 ### v1.1.3 (2021-01-25)
 
 - sqlite v3.34.1 (2021-01-20)
