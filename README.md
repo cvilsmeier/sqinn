@@ -124,6 +124,11 @@ Changelog
 See version in src/util.h
 
 
+### v1.1.6 (2021-03-20)
+
+- fix version tests
+
+
 ### v1.1.5 (2021-03-18)
 
 - sqlite 3.35.2 (2021-03-17)
