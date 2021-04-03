@@ -41,8 +41,8 @@ echo build-info
 BUILDINFO="bin/build-info.txt"
 date                      > $BUILDINFO
 echo                     >> $BUILDINFO
-echo "uname --all"       >> $BUILDINFO
-uname --all              >> $BUILDINFO
+echo "uname -a"          >> $BUILDINFO
+uname -a                 >> $BUILDINFO
 echo                     >> $BUILDINFO
 echo "gcc --version"     >> $BUILDINFO
 gcc --version            >> $BUILDINFO
