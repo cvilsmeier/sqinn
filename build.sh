@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if [ ! -d "src" ]; then
+    echo src dir not found
+    exit 1
+fi
+
 if [ ! -d "bin" ]; then
     mkdir bin
 fi
