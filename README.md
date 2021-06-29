@@ -46,11 +46,9 @@ tested it on the following platforms:
 
 - Windows 10 amd64, using Mingw64 gcc (tdm64-gcc-9.2.0 from https://jmeubank.github.io/tdm-gcc/)
 - Debian Linux 10 amd64
-- Raspbian Linux arm (Raspberry Pi)
-- Darwin amd64 (MacOS)
 
-The releases page contains a tar file with pre-built binaries which you can
-try out, see <https://github.com/cvilsmeier/sqinn/releases>.
+The releases page contains a tar file with pre-built binaries for Windows amd64
+and Linux amd64, see <https://github.com/cvilsmeier/sqinn/releases>.
 
 If you want to compile Sqinn, have gcc installed and follow the steps:
 
