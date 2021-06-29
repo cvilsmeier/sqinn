@@ -122,7 +122,7 @@ Changelog
 See version in src/util.h
 
 
-### v1.1.9 (2021-06-21)
+### v1.1.9 (2021-06-29)
 
 - sqlite 3.36.0 (2021-06-18)
 
