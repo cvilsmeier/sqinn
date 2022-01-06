@@ -18,9 +18,9 @@ jobs:
     - name: Compile
       run: |
         dir
-        cl /out:main.exe src\*.c
+        cl /Fe:sqinn.exe src\*.c
         dir
-        .\main.exe
+        .\sqinn.exe
         md dist
         copy main.exe dist/sqinn.exe
 
