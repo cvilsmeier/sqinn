@@ -1,0 +1,32 @@
+name: Windows
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup MSVC
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Compile
+      run: |
+        dir
+        cl /out:main.exe src\*.c
+        dir
+        .\main.exe
+        md dist
+        copy main.exe dist/sqinn.exe
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: dist-windows
+        path: dist
+
