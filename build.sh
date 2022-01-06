@@ -1,13 +1,11 @@
 #!/bin/sh
 
-if [ ! -d "src" ]; then
-    echo src dir not found
+if [ ! -f "src/main.c" ]; then
+    echo src/main.c not found - cannot build
     exit 1
 fi
 
-if [ ! -d "bin" ]; then
-    mkdir bin
-fi
+mkdir -p bin
 
 if [ ! -f "bin/sqlite3.o" ]; then
     echo build sqlite3.o
@@ -36,19 +34,4 @@ gcc $FLAGS -o bin/sqinn \
     src/loop.c \
     src/main.c \
     bin/sqlite3.o
-
-echo build-info
-BUILDINFO="bin/build-info.txt"
-date                      > $BUILDINFO
-echo                     >> $BUILDINFO
-echo "uname -a"          >> $BUILDINFO
-uname -a                 >> $BUILDINFO
-echo                     >> $BUILDINFO
-echo "gcc --version"     >> $BUILDINFO
-gcc --version            >> $BUILDINFO
-echo                     >> $BUILDINFO
-echo "file bin/sqinn"    >> $BUILDINFO
-file bin/sqinn           >> $BUILDINFO
-
-
 
