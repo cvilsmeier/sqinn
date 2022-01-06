@@ -22,7 +22,7 @@ jobs:
         dir
         .\sqinn.exe
         md dist
-        copy main.exe dist/sqinn.exe
+        copy sqinn.exe dist
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
