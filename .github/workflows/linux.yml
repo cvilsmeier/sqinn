@@ -21,6 +21,6 @@ jobs:
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
       with:
-        name: bin-linux
-        path: bin
+        name: dist-linux
+        path: dist
 

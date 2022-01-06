@@ -35,3 +35,7 @@ gcc $FLAGS -o bin/sqinn \
     src/main.c \
     bin/sqlite3.o
 
+mkdir -p dist
+
+cp bin/sqinn dist/
+
