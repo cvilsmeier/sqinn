@@ -32,7 +32,8 @@ All function calls and the binary IO protocol used for marshalling request and
 response data is described in [io\_protocol.md](io_protocol.md).
 
 For the Go (Golang) language binding, see
-<https://github.com/cvilsmeier/sqinn-go>.
+<https://github.com/cvilsmeier/sqinn-go>, for benchmarks, see
+<https://github.com/cvilsmeier/sqinn-go-bench>.
 
 
 Compiling with gcc
