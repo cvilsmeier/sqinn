@@ -31,9 +31,6 @@ you call multiple SQLite functions in one request/response cycle.
 All function calls and the binary IO protocol used for marshalling request and
 response data is described in [io\_protocol.md](io_protocol.md).
 
-For performance considerations and benchmarks, see
-[performance.md](performance.md).
-
 For the Go (Golang) language binding, see
 <https://github.com/cvilsmeier/sqinn-go>.
 
@@ -45,7 +42,7 @@ See the included `build.sh` script for compiling Sqinn with `gcc`. I have
 tested it on the following platforms:
 
 - Windows 10 amd64, using Mingw64 gcc (tdm64-gcc-9.2.0 from https://jmeubank.github.io/tdm-gcc/)
-- Debian Linux 10 amd64
+- Debian Linux 11 amd64
 
 The releases page contains a tar file with pre-built binaries for Windows amd64
 and Linux amd64, see <https://github.com/cvilsmeier/sqinn/releases>.
@@ -120,6 +117,11 @@ Changelog
 -------------------------------------------------------------------------------
 
 See version in src/util.h
+
+
+### v1.1.14
+
+- SQLite Version 3.38.2 (2022-03-26)
 
 
 ### v1.1.13
