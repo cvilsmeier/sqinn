@@ -120,6 +120,11 @@ Changelog
 See version in src/util.h
 
 
+### v1.1.16
+
+- SQLite Version 3.38.5 (2022-05-06)
+
+
 ### v1.1.15
 
 - SQLite Version 3.38.3 (2022-04-27)
