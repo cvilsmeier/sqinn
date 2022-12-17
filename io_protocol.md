@@ -97,6 +97,15 @@ codes provided by sqinn.
 Data Types
 ------------------------------------------------------------------------------
 
+### byte
+
+A byte is encoded as itself (a single byte). 
+
+Examples:
+
+    (byte)1   [0x01]
+
+
 ### bool
 
 A bool is encoded as a single byte. A value of zero means false, a
@@ -106,6 +115,7 @@ Examples:
 
     (bool)1   [0x01]
     (bool)0   [0x00]
+
 
 ### int32
 
@@ -120,6 +130,7 @@ Examples:
     (int32)256  [0x00, 0x00, 0x01, 0x00]
     (int32)-1   [0xFF, 0xFF, 0xFF, 0xFF]
 
+
 ### int64
 
 A int64 is a 64-bit (8-byte) signed integer value. It is encoded as 8
@@ -129,6 +140,7 @@ Examples:
 
     (int64)1    [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01]
     (int64)-1   [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
+
 
 ### string
 
@@ -166,8 +178,6 @@ string. The string encoding rules above apply for double values also.
 Examples:
 
     (double)1.2   [0x00, 0x00, 0x00, 0x04, 0x31, 0x2E, 0x32, 0x00]
-
-
 
 
 ### blob
@@ -242,7 +252,7 @@ This function returns the version of the sqlite library as a string, e.g.
     Response (Success):
 
         bool     true
-        int32    version                   e.g. "3.32.1"
+        string   version_string        e.g. "3.32.1"
 
 
 ### FC_OPEN
