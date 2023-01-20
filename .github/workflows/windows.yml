@@ -8,24 +8,23 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-
     - name: Checkout
-      uses: actions/checkout@v2
-
+      uses: actions/checkout@v3
     - name: Setup MSVC
       uses: ilammy/msvc-dev-cmd@v1
-
     - name: Compile
       run: |
+        echo "build start"
         dir
         cl /Fe:sqinn.exe src\*.c
         dir
-        .\sqinn.exe
+        echo "executing test"
+        .\sqinn.exe test
         md dist
         copy sqinn.exe dist
-
+        echo "build done"
     - name: Upload Artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: dist-windows
         path: dist
