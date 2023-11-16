@@ -119,152 +119,126 @@ Changelog
 
 See version in src/util.h
 
+### v1.1.29
+
+- SQLite Version 3.44.0 (2023-11-01)
 
 ### v1.1.28
 
 - SQLite Version 3.43.2 (2023-10-10)
 
-
 ### v1.1.27
 
 - SQLite Version 3.43.1 (2023-09-11)
-
 
 ### v1.1.26
 
 - SQLite Version 3.43.0 (2023-08-24)
 
-
 ### v1.1.25
 
 - SQLite Version 3.42.0 (2023-05-16)
-
 
 ### v1.1.24
 
 - SQLite Version 3.41.2 (2023-03-22)
 
-
 ### v1.1.23
 
 - SQLite Version 3.41.1 (2023-03-10)
-
 
 ### v1.1.22
 
 - SQLite Version 3.41.0 (2023-02-21)
 
-
 ### v1.1.21
 
 - SQLite Version 3.40.1 (2022-12-28)
-
 
 ### v1.1.20
 
 - SQLite Version 3.40.0 (2022-11-16)
 
-
 ### v1.1.19
 
 - SQLite Version 3.39.4 (2022-09-29)
-
 
 ### v1.1.18
 
 - SQLite Version 3.39.2 (2022-07-21)
 
-
 ### v1.1.17
 
 - SQLite Version 3.39.0 (2022-06-25)
-
 
 ### v1.1.16
 
 - SQLite Version 3.38.5 (2022-05-06)
 
-
 ### v1.1.15
 
 - SQLite Version 3.38.3 (2022-04-27)
-
 
 ### v1.1.14
 
 - SQLite Version 3.38.2 (2022-03-26)
 
-
 ### v1.1.13
 
 - SQLite Version 3.38.1 (2022-03-12)
-
 
 ### v1.1.12
 
 - SQLite Version 3.38.0 (2022-02-22)
 
-
 ### v1.1.11
 
 - SQLite Version 3.37.2 (2022-01-06)
-
 
 ### v1.1.10
 
 - SQLite Version 3.37.0
 
-
 ### v1.1.9 (2021-06-29)
 
 - sqlite 3.36.0 (2021-06-18)
-
 
 ### v1.1.8 (2021-04-23)
 
 - sqlite 3.35.5 (2021-04-19)
 
-
 ### v1.1.7 (2021-04-03)
 
 - sqlite 3.35.4 (2021-04-02)
-
 
 ### v1.1.6 (2021-03-20)
 
 - fix version tests
 
-
 ### v1.1.5 (2021-03-18)
 
 - sqlite 3.35.2 (2021-03-17)
-
 
 ### v1.1.4 (2021-01-29)
 
 - fixed version number
 
-
 ### v1.1.3 (2021-01-25)
 
 - sqlite v3.34.1 (2021-01-20)
 
-
 ### v1.1.2 (2020-11-06)
 
 - sqlite v3.33.0
-
 
 ### v1.1.1 (2020-06-22)
 
 - fix unsuccessful FC_EXEC/QUERY leaked prepared statement
 - sqlite v3.32.3
 
-
 ### v1.1.0 (2020-06-14)
 
 - fast IEEE 745 encoding for double values
-
 
 ### v1.0.0 (2020-06-10)
 
