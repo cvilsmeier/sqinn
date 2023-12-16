@@ -1,6 +1,13 @@
 
 ![Sqinn](logo-200.png "Sqinn")
 
+
+> [!NOTE]
+> This work is sponsored by Monibot - Easy Server and Application Monitoring.
+> Try out Monibot at [https://monibot.io](https://monibot.io?ref=sqinn).
+> It's free.
+
+
 Sqinn is an alternative to the SQLite C API. Sqinn reads requests from stdin,
 forwards the request to SQLite, and writes a response to stdout. It is used in
 programming environments that do not allow calling C API functions.
