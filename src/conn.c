@@ -103,6 +103,18 @@ int conn_step(conn *this, bool *more, char *errmsg, int maxerrmsg) {
     return err;
 }
 
+int conn_column_count(conn *this) {
+    return sqlite3_column_count(this->stmt);
+}
+
+int conn_column_type(conn *this, int icol) {
+    return sqlite3_column_type(this->stmt, icol);
+}
+
+int conn_column_name(conn *this, int icol, char *name, int maxname) {
+    return snprintf(name, maxname, "%s", sqlite3_column_name(this->stmt, icol));
+}
+
 int conn_reset(conn *this, char *errmsg, int maxerrmsg) {
     int err = sqlite3_reset(this->stmt);
     if (err != SQLITE_OK) {

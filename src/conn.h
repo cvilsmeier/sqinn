@@ -22,6 +22,9 @@ int conn_bind_double(conn *this, int iparam, double value, char *errmsg, int max
 int conn_bind_text(conn *this, int iparam, const char *value, char *errmsg, int maxerrmsg);
 int conn_bind_blob(conn *this, int iparam, const byte *value, int blob_size, char *errmsg, int maxerrmsg);
 int conn_step(conn *this, bool *more, char *errmsg, int maxerrmsg);
+int conn_column_count(conn *this);
+int conn_column_type(conn *this, int icol);
+int conn_column_name(conn *this, int icol, char *name, int maxname);
 int conn_reset(conn *this, char *errmsg, int maxerrmsg);
 void conn_changes(conn *this, int *pchanges);
 void conn_column_int(conn *this, int icol, bool *set, int *value);

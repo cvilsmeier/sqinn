@@ -15,6 +15,9 @@
 #define FC_COLUMN           16
 #define FC_FINALIZE         17
 #define FC_CLOSE            18
+#define FC_COLUMN_COUNT     19
+#define FC_COLUMN_TYPE      20
+#define FC_COLUMN_NAME      21
 #define FC_EXEC             51
 #define FC_QUERY            52
 
