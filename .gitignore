@@ -3,3 +3,4 @@
 *.o
 bin/
 dist/
+!.github/workflows/build.yml
