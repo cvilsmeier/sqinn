@@ -22,11 +22,11 @@ jobs:
       if: matrix.os == 'windows-latest'
       uses: ilammy/msvc-dev-cmd@v1
     
-    - name: Setup MacOS
-      if: matrix.os == 'macos-latest'
-      uses: niokasgami/setup-gcc@v1
-      with:
-        gcc-version: '11.2.0' # Specify the version you need
+    # - name: Setup MacOS
+    #   if: matrix.os == 'macos-latest'
+    #   uses: niokasgami/setup-gcc@v1
+    #   with:
+    #     gcc-version: '11.2.0' # Specify the version you need
 
 
     - name: Build on Linux
