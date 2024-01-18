@@ -46,15 +46,15 @@ jobs:
     - name: Build on Windows
       if: matrix.os == 'windows-latest'
       run: |
-        echo "build start"
+        echo build start
         dir
-        cl /Fe:sqinn.exe src\*.c
+        cl /Fe:sqinn.exe src\conn.c src\mem.c src\mem_test.c src\conn_test.c src\handler.c src\handler_test.c src\loop.c src\main.c /link /OUT:dist\sqinn.exe
         dir
-        echo "executing test"
+        echo executing test
         .\sqinn.exe test
-        md dist
+        if not exist dist md dist
         copy sqinn.exe dist
-        echo "build done"
+        echo build done
       shell: bash
     
     - name: Build on macOS
