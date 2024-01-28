@@ -20,9 +20,10 @@ case `uname -s` in
     *MINGW*)
         FLAGS="$FLAGS -static"
         ;;
+    
 esac
 
-echo build sqinn using FLAGS $FLAGS
+echo "build sqinn using FLAGS $FLAGS"
 gcc $FLAGS -o bin/sqinn \
     src/util.c \
     src/mem.c \

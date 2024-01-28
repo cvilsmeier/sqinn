@@ -1,0 +1,87 @@
+name: Cross-Platform Build
+
+on:
+  workflow_dispatch:  # Manually trigger the workflow
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            arch: AMD64
+          - os: ubuntu-latest
+            arch: i386
+          - os: windows-latest
+            arch: x64
+          - os: windows-latest
+            arch: x86
+          - os: macos-latest
+            arch: AMD64
+          - os: macos-latest
+            arch: ARM64
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup GCC On Linux
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt-get install gcc g++ -y
+
+    - name: Setup MinGW (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Build on Linux
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        echo "build start"
+        pwd
+        ls -al 
+        chmod a+x clean.sh build.sh
+        ./clean.sh
+        ./build.sh
+        echo "executing test"
+        bin/sqinn test
+        echo "build done"
+      shell: bash
+    
+    - name: Build on Windows
+      if: matrix.os == 'windows-latest'
+      run: |
+        echo "build start"
+        dir
+        cl /Fe:sqinn.exe src\*.c
+        dir
+        echo "executing test"
+        .\sqinn.exe test
+        md dist
+        copy sqinn.exe dist
+        echo "build done"
+    
+    - name: Build on macOS
+      if : matrix.os == 'macos-latest'
+      run: |
+        echo "build start for ${{ matrix.arch }}"
+        pwd
+        ls -al 
+        chmod a+x clean.sh build.sh
+        if [ "${{ matrix.arch }}" == "ARM64" ]; then
+          # add arm64 cross compile tagget
+          export CFLAGS="-target arm64-apple-macos11"
+          export CXXFLAGS="-target arm64-apple-macos11"
+          export LDFLAGS="-target arm64-apple-macos11"
+        fi
+        ./clean.sh
+        ./build.sh
+        echo "executing test"
+        bin/sqinn test
+        echo "build done"
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist-${{ matrix.os }}-${{ matrix.arch }}
+        path: dist
