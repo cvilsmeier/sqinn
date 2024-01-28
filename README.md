@@ -5,7 +5,6 @@
 > [!NOTE]
 > This work is sponsored by Monibot - Easy Server and Application Monitoring.
 > Try out Monibot at [https://monibot.io](https://monibot.io?ref=sqinn).
-> It's free.
 
 
 Sqinn is an alternative to the SQLite C API. Sqinn reads requests from stdin,
@@ -258,6 +257,15 @@ See version in src/util.h
 ### v1.0.0 (2020-06-10)
 
 - first version
+
+
+Contributing
+-------------------------------------------------------------------------------
+
+I will reject most PRs and feature requests. Why? Because I use sqinn for my
+own projects, and I want it to be fast, secure, robust and easy to maintain.
+I cannot include every feature under the sun.
+I give it away for free, so everybody can adjust it to his or her own needs.
 
 
 License
