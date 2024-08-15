@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# fail fast
+set -e
+
+# must be in 
 if [ ! -f "src/main.c" ]; then
     echo src/main.c not found - cannot build
     exit 1
