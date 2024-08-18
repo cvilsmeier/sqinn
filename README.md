@@ -3,7 +3,7 @@
 
 
 > [!NOTE]
-> This work is sponsored by Monibot - Easy Server and Application Monitoring.
+> This work is sponsored by Monibot - Website, Server and Application Monitoring.
 > Try out Monibot at [https://monibot.io](https://monibot.io?ref=sqinn).
 
 
@@ -49,7 +49,8 @@ See the included `build.sh` script for compiling Sqinn with `gcc`. I have
 tested it on the following platforms:
 
 - Windows 10 amd64, using Mingw64 gcc (tdm64-gcc-9.2.0 from https://jmeubank.github.io/tdm-gcc/)
-- Debian Linux 11 amd64
+- Windows 10 amd64, using MSVC
+- Debian Linux 11/12 amd64
 
 The releases page contains a tar file with pre-built binaries for Windows amd64
 and Linux amd64, see <https://github.com/cvilsmeier/sqinn/releases>.
