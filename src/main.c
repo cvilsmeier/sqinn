@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
                 "\n"
                 "Usage:\n"
                 "\n"
-                "       sqinn [options...] [command] \n"
+                "       sqinn [options...] [command]\n"
                 "\n"
                 "Commands are:\n"
                 "\n"
@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
                 "from stdin, print responses to stdout and output error messages\n"
                 "on stderr.\n"
                 "\n"
-                "For more details see https://www.github.com/cvilsmeier/sqinn\n");
+                "For more details see https://github.com/cvilsmeier/sqinn\n");
             return 0;
         } else if (strcmp(argv[i], "version") == 0 || strcmp(argv[i], "--version") == 0) {
             printf("sqinn v%s\n", SQINN_VERSION);
