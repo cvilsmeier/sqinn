@@ -27,7 +27,7 @@ another platform (say from Linux to MacOS) is hard to setup.
 Sqinn provides functions that map to SQLite functions, like `sqlite3_open()`,
 `sqlite3_prepare()`, `sqlite3_bind()`, and so on. If you have not read the
 [Introduction to the SQLite C/C++
-Interface](https://www.sqlite.org/cintro.html), now it's a good time. It's a
+Interface](https://www.sqlite.org/cintro.html), now is a good time. It's a
 5-minute read and shows the basic workings of SQLite.
 
 Marshalling requests and responses back and forth between process boundaries
