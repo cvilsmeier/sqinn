@@ -1,6 +1,2 @@
-*.exe
-*.db
-*.o
-bin/
-dist/
 .vscode/
+bin/

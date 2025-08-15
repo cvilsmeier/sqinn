@@ -2,7 +2,7 @@ name: Windows
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -18,10 +18,11 @@ jobs:
       run: |
         echo "build start"
         dir
-        cl /Fe:sqinn.exe src\*.c
+        script\build.bat
         dir
-        echo "executing test"
-        .\sqinn.exe test
+        echo "run test"
+        .\sqinn.exe test -loglevel 1 -logstderr
+        echo "make dist folder"
         md dist
         copy sqinn.exe dist
         echo "build done"
@@ -29,6 +30,6 @@ jobs:
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: dist-windows
+        name: dist-windows-amd64
         path: dist
 

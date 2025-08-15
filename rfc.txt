@@ -1,0 +1,366 @@
+Network Working Group                                       C. Vilsmeier
+Request for Comments: None                                   August 2025
+Category: Informational
+
+                    Sqinn - SQLite over stdin/stdout
+
+Status of this Memo
+
+    This memo provides information for the Internet community. It does
+    not specify an Internet standard of any kind. Distribution of this
+    memo is unlimited.
+
+Copyright Notice
+
+    Copyright (C) The Public Domain. All Rights Reserved.
+
+Abstract
+
+    This document describes the Sqinn protocol, a protocol for accessing
+    a SQLite database over stdin/stdout.
+
+1. Rationale and Scope
+
+    There are SQLite databases all over the world. Increasingly, in a
+    world in which computing is ubiquitous, the computists want to make
+    even more SQLite databases. SQLite database files are created and
+    modified by the SQLite database library. SQLite, the library, is
+    small, fast, free and well tested. It is made by Richard Hipp.
+    SQLite is, by far, the most used database in the world.
+    The SQLite library is written in C, an ancient programming language
+    from the medieval ages of kings and queens.
+
+    Some younger computists want to use SQLite in more modern
+    programming languages like Java, Rust or Go. Some of those languages
+    make it unneccesarily hard to interface with a C library. The
+    reasons are manyfold: Threading issues, unclear memory models,
+    compiler issues, platform dependencies, dynamic library version
+    hell, and so forth.
+
+    To make it easier for the users of these languages, Sqinn defines a
+    communication protocol that is used by 'client' processes to
+    communicate with a SQLite 'server' process. The communication uses
+    pipes (stdin/stdout), so that a client can spawn a Sqinn process and
+    communicate with it by sending and receiving bytes. Readers familiar
+    with UNIX pipes will instantly recognize this communication pattern,
+    as they use it in their daily work to forward data from one process
+    to another.
+
+2. Data Types
+
+    Sqinn defines the following data types:
+
+        int32     A 4-byte integer value.
+
+        int64     A 8-byte integer value.
+
+        double    A 8-byte floating point value.
+
+        string    A length-prefixed null-terminated byte string.
+
+        blob      A length-prefixed byte array.
+
+        value     A value of any of the above types, or NULL.
+
+2.1. Int32
+
+    An int32 is encoded as 4 bytes, MSB first (a.k.a. big-endian).
+
+    A sample int32 looks like this:
+
+    00 00 00 01   // int32 value 1
+
+    00 00 01 00   // int32 value 256
+
+    FF FF FF FF   // int32 value -1
+
+    FF FF FF FE   // int32 value -2
+
+2.2. Int64
+
+    An int64 is encoded as 8 bytes, MSB first (a.k.a. big-endian).
+
+    A sample int64 looks like this:
+
+    00 00 00 00 00 00 00 01   // int64 value 1
+
+    00 00 00 00 00 00 01 00   // int64 value 256
+
+    FF FF FF FF FF FF FF FF   // int64 value -1
+
+    FF FF FF FF FF FF FF FE   // int64 value -2
+
+2.3. Double
+
+    A double is encoded with the
+    8-byte IEEE 754 encoding of a double precision floating-point
+    value. The sign bit comes first, then the eponent bits, then
+    the fraction bits.
+
+    A sample double looks like this:
+
+    40 60 10 00 00 00 00 00   // double value 128.5
+
+2.4. String
+
+    A string is encoded with its length (a 4-byte int32) first, then the
+    string content, then a terminating null character. It is important
+    to note that the length includes the terminating null character. So,
+    an empty string has length 1, not 0. A string length of 0 is not
+    valid.
+
+    A sample string looks like this:
+
+    00 00 00 04     // int32 string length
+    41 42 43 00     // string data and terminating null character
+
+2.5. Blob
+
+    A blob is encoded with its length (a 4-byte int32) first, then the
+    blob's byte content.
+
+    A sample blob looks like this:
+
+    00 00 00 04     // int32 blob length
+    AF F0 33 E2     // blob data
+
+2.6. Value
+
+    A value is encoded with its type (one byte), followed by the
+    encoding of its int32/int64/double/string/blob content.
+
+    The following value types are defined:
+
+    VT_NULL   0   A NULL value.
+    VT_INT32  1   An int32 value.
+    VT_INT64  2   An int64 value.
+    VT_DOUBLE 3   A double value.
+    VT_STRING 4   A string value.
+    VT_BLOB   5   A blob value.
+
+    Sample values looks like this:
+
+    00                          // VT_NULL
+
+    01 00 00 00 02              // VT_INT32 followed by a 4-byte int32
+                                // value 2.
+
+    02 00 00 00 00 00 00 00 02  // VT_INT64 followed by a 8-byte int64
+                                // value 2.
+
+    03 00 00 00 00 00 00 00 02  // VT_DOUBLE followed by a 8-byte double
+                                // value.
+
+    04 00 00 00 01 00           // VT_STRING followed by an empty
+                                // string.
+
+    05 00 00 00 01 FF           // VT_BLOB followed by a 1-byte blob.
+
+3. Requests and Responses
+
+    A request is sent from the client to the server. A request has the
+    following format:
+
+        1 byte      A function code
+        N bytes     The request payload (depends on the function code)
+
+    The following function codes are defined:
+
+        FC_EXEC   1  Execute a parameterized SQL statement (INSERT,
+                     UPDATE, DELETE, etc.), possibly multiple times.
+
+        FC_QUERY  2  Execute a parameterized SQL query (SELECT).
+
+        FC_QUIT   9  Close database and quit.
+
+    A response is sent from the server back to the client. It has the
+    following format:
+
+        N bytes   The response payload (depends on function code)
+
+    Synchronization
+
+        A client, having sent a request, must read the server response
+        completely before sending a new request.
+
+        A server must not send any data, except if requested by a
+        client. After the server has sent the response completely, it
+        must await the next request from the client.
+
+3.1. FC_EXEC
+
+    A FC_EXEC request tells the server that it should execute a DDL
+    (CREATE TABLE, CREATE INDEX, etc.) or a parameterized SQL statement
+    (INSERT, UPDATE, DELETE, etc.), possibly multiple times.
+
+    It has the following data objects:
+
+    sql       string   The sql statement to be executed.
+
+    niter     int32    Number of iterations. If niter is 1, the
+                       statement is executed once. If it is greater than
+                       1, the statement is executed multiple times, each
+                       time with another set of supplied parameters.
+                       This is useful, for example, for inserting many
+                       rows at once.
+
+    nparams   int32    The number of parameters per iteration. It can
+                       be 0.
+
+    params    []value  An array of parameter values. The length of this
+                       array is niter x nparams. In other words, for
+                       each iteration, there are nparams values.
+
+    A sample FC_EXEC request looks like this:
+
+    01                        // FC_EXEC
+    00 00 00 2C               // length of sql
+    41 42 43 .. .. 00         // sql, null-terminated
+    00 00 00 02               // 2 iterations
+    00 00 00 02               // 2 params per iteration
+    01                        //   iteration 0 param 0 type (VT_INT32)
+    00 00 00 0A               //   iteration 0 param 0 value
+    04                        //   iteration 0 param 1 type (VT_STRING)
+    00 00 00 0A               //   iteration 0 param 1 string length
+    41 42 .. .. 00            //   iteration 0 param 1 string value length
+    00                        //   iteration 1 param 0 type (VT_NULL)
+    00                        //   iteration 1 param 1 type (VT_NULL)
+
+    The server will prepare a statement with the provided sql, and
+    execute it niter times, each time feeding nparams parameter values
+    into the prepared statement. It sends a success response or an error
+    response back to the client.
+
+    A sample FC_EXEC success response looks like this:
+
+    01      // ok
+
+    A sample FC_EXEC error response looks like this:
+
+    00                 // not ok
+    00 00 00 2A        // length of errmsg
+    41 42 43 .. .. 00  // errmsg, null-terminated
+
+3.2. FC_QUERY
+
+    A FC_QUERY request tells the server that it should execute a
+    parameterized SQL statement (SELECT, etc.), and return result
+    values.
+
+    It has the following data objects:
+
+    sql       string   The sql statement that should be executed.
+
+    nparams   int32    The number of parameters. It can be 0.
+
+    params    []value  An array (length nparams) of parameter values.
+
+    ncols     int32    The number of columns per result row.
+
+    coltypes  []byte   An array (length ncols) of column types
+                       (VT_INT32, VT_INT64, etc.).
+
+    A sample FC_QUERY request looks like this:
+
+    02                 // FC_QUERY
+    00 00 00 2C        // sql string length
+    41 42 43 .. 00     // sql string, null-terminated
+    00 00 00 02        // 2 params
+    01                 //   param 0 type (VT_INT32)
+    00 00 00 0A        //     int32 value
+    04                 //   param 1 type (VT_STRING)
+    00 00 00 0A        //     string length
+    41 42 43 .. 00     //     string, null-terminated
+    00 00 00 02        // 2 columns
+    01                 //   column 0 type (VT_INT32)
+    04                 //   column 1 type (VT_STRING)
+
+    The server will prepare a statement with the provided sql, execute
+    it, and fetch all result rows, and send each column value for each
+    row back to the client.
+
+    A sample FC_QUERY success response looks like this:
+
+    01                 // has row
+    01                 //   value 0 type (VT_INT32)
+    00 00 00 02        //     int32 value
+    00                 //   value 1 type (VT_NULL)
+    01                 // has row
+    01                 //   value 0 type (VT_INT32)
+    00 00 00 02        //     int32 value
+    04                 //   value 1 type (VT_STRING)
+    00 00 00 0A        //     string length
+    41 42 43 .. .. 00  //     string, null-terminated
+    00                 // no more rows
+    01                 // ok
+
+    A sample FC_QUERY error response looks like this:
+
+    01                 // has row
+    00                 //   value 0 type (VT_NULL)
+    00                 //   value 1 type (VT_NULL)
+    00                 // no more rows
+    00                 // not ok
+    00 00 00 2A        // errmsg length
+    41 42 43 .. .. 00  // errmsg, null-terminated
+
+3.3. FC_QUIT
+
+    A FC_QUIT request tells the server that the client is done.
+
+    It has no further data objects.
+
+    A sample FC_QUIT request looks like this:
+
+    09      // FC_QUIT
+
+    A sample FC_QUIT success response looks like this:
+
+    01      // ok
+
+    There is no error response for FC_QUIT.
+
+4. Data Frames
+
+    All data that is sent by a client to the server, or vice versa, is
+    framed. Big requests and responses can be split into several frames,
+    to help avoid excessive memory consumption in clients and servers.
+    
+    A frame has the following format:
+
+        4 byte    The frame payload length N
+        N bytes   The payload data
+
+    A sample frame looks like this:
+
+    00 00 00 07            // payload length is 7 bytes
+    01 00 00 00 02 41 00   // 7-byte payload data
+
+    The following rules apply:
+
+    (a) A request or  can be contained in exactly one frame or split
+        into several frames.
+
+    (b) A single frame contains the data of exactly one request or
+        repsonse. In other words, a frame must not contain data for more
+        than one reqest/response.
+
+    (c) Each value (int32, int64, double, string or blob) must be
+        contained as a whole in one frame. In other words, a single
+        value cannot be split across several frames.
+
+    One consequence of rule (c) is that large strings or blobs can lead
+    to very large frames, as a string or blob is not allowed to be split
+    into two or more frames.
+
+5. Conclusion
+
+    We have presented the Sqinn protocol for accessing a SQLite
+    database over stdin/stdout.
+
+    The references implementations for a Sqinn server and client library
+    can be found by following these world wide web hyperlinks:
+    https://github.com/cvilsmeier/sqinn
+    https://github.com/cvilsmeier/sqinn-go
+
+|----------------------------------------------------------------------|

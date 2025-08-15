@@ -2,7 +2,7 @@ name: Linux
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -16,16 +16,20 @@ jobs:
         echo "build start"
         pwd
         ls -al
-        chmod a+x clean.sh build.sh
-        ./clean.sh
-        ./build.sh
+        chmod a+x script/*.sh
+        script/build.sh
         echo "executing test"
+        bin/sqinn version
+        bin/sqinn sqlite
         bin/sqinn test
         echo "build done"
+        rm -rf dist/
+        mkdir dist/
+        cp bin/sqinn dist/
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: dist-linux
+        name: dist-linux-amd64
         path: dist
 
