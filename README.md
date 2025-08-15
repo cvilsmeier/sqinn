@@ -1,5 +1,9 @@
 ![Sqinn](logo.png "Sqinn")
 
+[![Build Status](https://github.com/cvilsmeier/sqinn/actions/workflows/linux.yml/badge.svg)](https://github.com/cvilsmeier/sqinn/actions/workflows/linux.yml)
+[![Build Status](https://github.com/cvilsmeier/sqinn/actions/workflows/windows.yml/badge.svg)](https://github.com/cvilsmeier/sqinn/actions/workflows/windows.yml)
+[![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue.svg)](http://unlicense.org/)
+
 
 > [!NOTE]
 > This work is sponsored by Monibot - Website, Server and Application Monitoring.
