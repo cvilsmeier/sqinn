@@ -67,26 +67,30 @@ Command line usage
 There isn't really one. Sqinn is not used by humans, it's used by other
 programs. That said:
 
-    $ sqinn
-    sqinn v2.0.0 - SQLite over stdin/stdout.
+```
+$ sqinn
+sqinn v2.0.0 - SQLite over stdin/stdout.
 
-    Usage:
-            sqinn <command> [options...]
+Usage:
+    sqinn <command> [options...]
 
-    The commands are:
+The commands are:
 
-            run               Listen to stdin and write to stdout.
-            test              Execute selftest and exit.
-            version           Print version and exit.
-            sqlite            Print SQLite library version and exit.
-            help              Print help page and exit.
+    run               Read requests from stdin and write responses to stdout.
+    test              Execute selftest and exit.
+    version           Print version and exit.
+    sqlite            Print SQLite library version and exit.
+    help              Print help page and exit.
 
-    The options are:
+The options are:
 
-            -db <dbname>      Database name. Default is ":memory:"
-            -loglevel <level> Log level: 0=off, 1=info, 2=debug. Default is 0 (off).
-            -logfile <file>   Log to a file. Default is empty (no file logging).
-            -logstderr        Log to stderr. Default is off (no stderr logging).
+    -db <dbname>      Database name. Default is ":memory:"
+    -loglevel <level> Log level: 0=off, 1=info, 2=debug. Default is 0 (off).
+    -logfile <file>   Log to a file. Default is empty (no file logging).
+                      Note: Logfile is appended and will grow unlimited.
+    -logstderr        Log to stderr. Default is off (no stderr logging).
+```
+
 
 
 Limitations

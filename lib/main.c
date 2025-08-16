@@ -66,23 +66,23 @@ void help() {
     printf("%s v%s - SQLite over stdin/stdout.\n", SQINN_NAME, SQINN_VERSION);
     printf("\n");
     printf("Usage:\n");
-    printf("\t%s <command> [options...]\n", SQINN_NAME);
+    printf("    %s <command> [options...]\n", SQINN_NAME);
     printf("\n");
     printf("The commands are:\n");
     printf("\n");
-    printf("\trun               Read requests from stdin and write responses to stdout.\n");
-    printf("\ttest              Execute selftest and exit.\n");
-    printf("\tversion           Print version and exit.\n");
-    printf("\tsqlite            Print SQLite library version and exit.\n");
-    printf("\thelp              Print help page and exit.\n");
+    printf("    run               Read requests from stdin and write responses to stdout.\n");
+    printf("    test              Execute selftest and exit.\n");
+    printf("    version           Print version and exit.\n");
+    printf("    sqlite            Print SQLite library version and exit.\n");
+    printf("    help              Print help page and exit.\n");
     printf("\n");
     printf("The options are:\n");
     printf("\n");
-    printf("\t-db <dbname>      Database name. Default is \":memory:\"\n");
-    printf("\t-loglevel <level> Log level: 0=off, 1=info, 2=debug. Default is 0 (off).\n");
-    printf("\t-logfile <file>   Log to a file. Default is empty (no file logging).\n");
-    printf("\t                  Note: Logfile is appended and will grow unlimited.\n");
-    printf("\t-logstderr        Log to stderr. Default is off (no stderr logging).\n");
+    printf("    -db <dbname>      Database name. Default is \":memory:\"\n");
+    printf("    -loglevel <level> Log level: 0=off, 1=info, 2=debug. Default is 0 (off).\n");
+    printf("    -logfile <file>   Log to a file. Default is empty (no file logging).\n");
+    printf("                      Note: Logfile is appended and will grow unlimited.\n");
+    printf("    -logstderr        Log to stderr. Default is off (no stderr logging).\n");
     printf("\n");
 }
 
