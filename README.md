@@ -43,15 +43,19 @@ and Linux amd64, see <https://github.com/cvilsmeier/sqinn/releases>.
 
 If you want to compile Sqinn, have gcc installed and follow the steps:
 
-        $ git clone https://github.com/cvilsmeier/sqinn
-        $ cd sqinn
-        $ chmod a+x script/*.sh
-        $ script/build.sh
+```bash
+git clone https://github.com/cvilsmeier/sqinn
+cd sqinn
+chmod a+x script/*.sh
+script/build.sh
+```
 
 The build script creates a `bin` subdirectory that the build results go into.
 Test it with:
 
-        $ bin/sqinn test
+```bash
+bin/sqinn test
+```
 
 See also <https://github.com/cvilsmeier/sqinn/actions> for build actions for
 Linux and Windows.
@@ -103,7 +107,7 @@ vfs and extension functions are not supported, among others.
 Contributing
 -------------------------------------------------------------------------------
 
-I will reject most PRs and feature requests. Why? Because I use sqinn for my
+I have to reject most PRs and feature requests. Why? Because I use sqinn for my
 own projects, and I need it to be fast, secure, reliable and easy to maintain.
 I cannot include every feature under the sun.
 I give it away for free, so everybody can adjust it to his or her own needs.
@@ -116,4 +120,3 @@ Changelog
 
 - New I/O protocol
 - SQLite Version 3.50.4 (2025-07-30)
-
