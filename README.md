@@ -23,7 +23,7 @@ might be to communicate with SQLite over stdin/stdout, using Sqinn.
 Sqinn provides functions to execute SQL statements and query database rows.
 
 All function calls and the binary protocol used for sending request and
-receiving responses is described in [rfx.txt](rfx.txt).
+receiving responses is described in [rfc.txt](rfc.txt).
 
 For the Go (Golang) language binding, see <https://github.com/cvilsmeier/sqinn-go>,
 for benchmarks, see <https://github.com/cvilsmeier/sqinn-go-bench>.
