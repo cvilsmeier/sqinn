@@ -1,0 +1,36 @@
+name: MacOS
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Build
+      run: |
+        echo "build start"
+        uname -a
+        pwd
+        ls -al
+        chmod a+x script/*.sh
+        script/build.sh
+        echo "executing test"
+        bin/sqinn version
+        bin/sqinn sqlite
+        bin/sqinn test
+        echo "build done"
+        rm -rf dist/
+        mkdir dist/
+        cp bin/sqinn dist/
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist-macos-arm64
+        path: dist
+
