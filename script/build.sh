@@ -1,12 +1,20 @@
 #!/bin/sh
 
 set -e
-stat lib/ > /dev/null  # must be in correct dir
-mkdir -p bin # in case it does not exist
+stat lib/ > /dev/null  # we must be in correct directory
+mkdir -p bin    # bin directory will hold all buld artefacts
+echo we are on "$(uname)"
 
-# compile the thing
+# setup the thing
 CC="gcc"
 CFLAGS="-std=c99 -Wall -Werror -O2"
+LDFLAGS="-static"
+if test "$(uname)" = "Darwin"; then
+    CC="clang"
+    LDFLAGS=""   # apple does not support -static
+fi
+
+# compile the thing
 if ! test -f bin/sqlite3.o; then
     $CC $CFLAGS -c lib/sqlite3.c -o bin/sqlite3.o -DSQLITE_OMIT_LOAD_EXTENSION -DSQLITE_THREADSAFE=0
 fi
@@ -16,7 +24,8 @@ $CC $CFLAGS -c lib/db.c   -o bin/db.o
 $CC $CFLAGS -c lib/app.c  -o bin/app.o
 $CC $CFLAGS -c lib/main.c -o bin/main.o
 
-$CC -static \
+# link the thing
+$CC $LDFLAGS \
     bin/sqlite3.o \
     bin/utl.o \
     bin/io.o \

@@ -392,7 +392,7 @@ static void testValueTypesAndErrors() {
             ASSERT(Reader_readByte(r));  // has value
             ASSERT_INT64(2, Reader_readInt64(r));
             ASSERT(Reader_readByte(r));             // has value
-            ASSERT_INT(2.2, Reader_readDouble(r));  // double 2.2
+            ASSERT_DOUBLE(2.2, Reader_readDouble(r));  // double 2.2
             ASSERT(Reader_readByte(r));             // has value
             const char *str = Reader_readString(r);
             ASSERT_STR("Bob", str);

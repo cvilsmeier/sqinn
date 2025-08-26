@@ -345,7 +345,7 @@ static void testWriteAndRead() {
     Writer *w = newMemWriter(buf, sizeof(buf));
     Writer_writeByte(w, 0);
     Writer_writeByte(w, 42);
-    Writer_writeByte(w, 255);                  // same as -1
+    Writer_writeByte(w, -1);                   // same as 255
     Writer_writeInt32(w, 0x10203040);          // 4 byte
     Writer_writeInt32(w, 0xF0E0D0C0);          // 4 byte
     Writer_writeInt64(w, 0x1020304050607080);  // 8 byte
