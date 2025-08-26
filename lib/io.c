@@ -216,7 +216,6 @@ void Writer_free(Writer* this) {
 }
 
 static void _growWriter(Writer* this, size_t minSize) {
-    LOG_DEBUG2("_growWriter: this->bufsz %ld, minSize %ld", this->bufsz, minSize);
     if (this->bufsz < minSize) {
         size_t newSize = this->bufsz;
         while( newSize < minSize ) {
