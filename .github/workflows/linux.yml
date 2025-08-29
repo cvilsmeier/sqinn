@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -14,6 +14,7 @@ jobs:
     - name: Build
       run: |
         echo "build start"
+        uname -a
         pwd
         ls -al
         chmod a+x script/*.sh
