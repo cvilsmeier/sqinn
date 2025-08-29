@@ -37,13 +37,15 @@ Compiling
 See the included `build.sh` and `build.bat` script for compiling Sqinn. 
 I have tested it on the following platforms:
 
-- Windows 10 amd64, using MSVC Build Tools (cl.exe)
 - Debian Linux 12 amd64 (gcc)
+- Windows 10 amd64, using MSVC Build Tools (cl.exe)
+- Macos 13 amd64 (clang)
 
-The releases page contains a tar file with pre-built binaries for Windows amd64
-and Linux amd64, see <https://github.com/cvilsmeier/sqinn/releases>.
+The releases page contains a tar file with pre-built binaries for linux-amd64, 
+windows-amd64, macos-amd64 and macos-arm64,
+see <https://github.com/cvilsmeier/sqinn/releases>.
 
-If you want to compile Sqinn, have gcc installed and follow the steps:
+If you want to compile Sqinn, have gcc/cl.exe/clang installed and follow the steps:
 
 ```bash
 git clone https://github.com/cvilsmeier/sqinn
@@ -60,7 +62,7 @@ bin/sqinn test
 ```
 
 See also <https://github.com/cvilsmeier/sqinn/actions> for build actions for
-Linux and Windows.
+Linux, Windows and MacOS.
 
 
 Command line usage
