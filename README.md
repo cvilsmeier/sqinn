@@ -2,6 +2,8 @@
 
 [![Build Status](https://github.com/cvilsmeier/sqinn/actions/workflows/linux.yml/badge.svg)](https://github.com/cvilsmeier/sqinn/actions/workflows/linux.yml)
 [![Build Status](https://github.com/cvilsmeier/sqinn/actions/workflows/windows.yml/badge.svg)](https://github.com/cvilsmeier/sqinn/actions/workflows/windows.yml)
+[![Build Status](https://github.com/cvilsmeier/sqinn/actions/workflows/macos.yml/badge.svg)](https://github.com/cvilsmeier/sqinn/actions/workflows/macos.yml)
+[![Build Status](https://github.com/cvilsmeier/sqinn/actions/workflows/macos-arm64.yml/badge.svg)](https://github.com/cvilsmeier/sqinn/actions/workflows/macos-arm64.yml)
 [![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue.svg)](http://unlicense.org/)
 
 
