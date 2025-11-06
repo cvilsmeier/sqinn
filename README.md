@@ -7,6 +7,7 @@
 [![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue.svg)](http://unlicense.org/)
 
 
+
 > [!NOTE]
 > This work is sponsored by Monibot - Website, Server and Application Monitoring.
 > Try out Monibot at [https://monibot.io](https://monibot.io?ref=sqinn).
@@ -121,8 +122,13 @@ I cannot include every feature under the sun.
 I give it away for free, so everybody can adjust it to his or her own needs.
 
 
+
 Changelog
 -------------------------------------------------------------------------------
+
+### v2.0.1
+
+- SQLite Version 3.51.0 (2025-11-04)
 
 ### v2.0.0
 

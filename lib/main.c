@@ -5,7 +5,7 @@
 #include "sqlite3.h"
 
 #define SQINN_NAME "sqinn"
-#define SQINN_VERSION "2.0.0"
+#define SQINN_VERSION "2.0.1"
 
 BOOL hasCommand(int argc, char const *argv[], const char *name) {
     if ( argc >= 2 ) {

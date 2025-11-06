@@ -18,7 +18,7 @@ func main() {
 	}
 	var sourceVersion string
 	{
-		// #define SQINN_VERSION "2.0.0"
+		// #define SQINN_VERSION "9.9.9"
 		text := readFile("lib/main.c")
 		_, text = mustCut(text, "#define SQINN_VERSION \"")
 		sourceVersion, _ = mustCut(text, "\"")
