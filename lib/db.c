@@ -392,11 +392,16 @@ static void testSqliteStmtCaching() {
             sq_close(db);
         }
     }
-    // TODO Statement caching is a thing.
     // without caching took 1658 clocks
     // with    caching took  517 clocks
     // without caching took 1521 clocks
     // with    caching took  512 clocks
+    // 
+    // Statement caching might seem to be a thing.
+    // But this is true only for ":memory:" databases.
+    // As soon as sqlite hits the file system, things look different.
+    // Real-world tests with production databases have shown average
+    // performance improvements from 5% to 15% (percent).
 }
 
 static void testMemoryDb() {
