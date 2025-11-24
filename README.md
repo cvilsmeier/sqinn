@@ -7,7 +7,6 @@
 [![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue.svg)](http://unlicense.org/)
 
 
-
 > [!NOTE]
 > This work is sponsored by Monibot - Website, Server and Application Monitoring.
 > Try out Monibot at [https://monibot.io](https://monibot.io?ref=sqinn).
@@ -30,6 +29,7 @@ receiving responses is described in [rfc.txt](rfc.txt).
 
 For the Go (Golang) language binding, see <https://github.com/cvilsmeier/sqinn-go>,
 for benchmarks, see <https://github.com/cvilsmeier/sqinn-go-bench>.
+
 
 
 Compiling
@@ -64,6 +64,7 @@ bin/sqinn test
 
 See also <https://github.com/cvilsmeier/sqinn/actions> for build actions for
 Linux, Windows and MacOS.
+
 
 
 Command line usage
@@ -113,12 +114,15 @@ provides. Interruption of SQL operations, incremental blob i/o,
 vfs and extension functions are not supported, among others.
 
 
+
 Contributing
 -------------------------------------------------------------------------------
 
 I have to reject most PRs and feature requests. Why? Because I use sqinn for my
-own projects, and I need it to be fast, secure, reliable and easy to maintain.
-I cannot include every feature under the sun.
+own projects, and I need it to be reliable, fast, reliable, secure, reliable
+and easy to maintain. Did I mention reliable?
+I cannot include every feature under the sun. Additionally, there are legal
+issues that prevent me from using source code from unknown provenance.
 I give it away for free, so everybody can adjust it to his or her own needs.
 
 
