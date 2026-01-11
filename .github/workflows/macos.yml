@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-13     # this is a amd64 machine
+    runs-on: macos-15-intel     # this is a amd64 machine
     steps:
     - name: Checkout
       uses: actions/checkout@v4
