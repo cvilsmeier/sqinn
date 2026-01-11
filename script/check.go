@@ -24,9 +24,9 @@ func main() {
 		sourceVersion, _ = mustCut(text, "\"")
 	}
 	if readmeVersion != sourceVersion {
+		log.Printf("README.md  version %q", readmeVersion)
+		log.Printf("lib/main.c version %q", sourceVersion)
 		log.Fatal("not OK: version mismatch")
-		log.Printf("readmeVersion %q", readmeVersion)
-		log.Printf("sourceVersion %q", sourceVersion)
 	}
 	log.Print("check.go ok")
 }
