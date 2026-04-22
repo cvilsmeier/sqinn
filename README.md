@@ -130,6 +130,10 @@ I give it away for free, so everybody can adjust it to his or her own needs.
 Changelog
 -------------------------------------------------------------------------------
 
+### v2.0.4
+
+- SQLite Version 3.53.0 (2026-04-09)
+
 ### v2.0.3
 
 - SQLite Version 3.51.3 (2026-03-13)

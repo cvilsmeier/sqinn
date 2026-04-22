@@ -6,6 +6,9 @@ import (
 	"strings"
 )
 
+// This Go program checks that the verison numbers
+// in README.md and main.c are in sync.
+
 func main() {
 	log.SetFlags(0)
 	log.SetOutput(os.Stdout)
@@ -32,7 +35,11 @@ func main() {
 }
 
 func readFile(name string) string {
-	return string(must(os.ReadFile(name)))
+	data, err := os.ReadFile(name)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return string(data)
 }
 
 func mustCut(s, sep string) (_before string, _after string) {
@@ -41,11 +48,4 @@ func mustCut(s, sep string) (_before string, _after string) {
 		log.Fatalf("%q not found in %q", sep, s)
 	}
 	return strings.TrimSpace(before), strings.TrimSpace(after)
-}
-
-func must[V any](v V, err error) V {
-	if err != nil {
-		log.Fatal(err)
-	}
-	return v
 }
