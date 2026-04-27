@@ -5,6 +5,7 @@
 [![Build Status](https://github.com/cvilsmeier/sqinn/actions/workflows/macos.yml/badge.svg)](https://github.com/cvilsmeier/sqinn/actions/workflows/macos.yml)
 [![Build Status](https://github.com/cvilsmeier/sqinn/actions/workflows/macos-arm64.yml/badge.svg)](https://github.com/cvilsmeier/sqinn/actions/workflows/macos-arm64.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/license/mit)
+[![RFC available](https://img.shields.io/badge/RFC_available-8A2BE2.svg)](https://raw.githubusercontent.com/cvilsmeier/sqinn/refs/heads/master/rfc.txt)
 
 
 > [!NOTE]
