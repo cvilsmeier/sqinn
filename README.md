@@ -4,7 +4,7 @@
 [![Build Status](https://github.com/cvilsmeier/sqinn/actions/workflows/windows.yml/badge.svg)](https://github.com/cvilsmeier/sqinn/actions/workflows/windows.yml)
 [![Build Status](https://github.com/cvilsmeier/sqinn/actions/workflows/macos.yml/badge.svg)](https://github.com/cvilsmeier/sqinn/actions/workflows/macos.yml)
 [![Build Status](https://github.com/cvilsmeier/sqinn/actions/workflows/macos-arm64.yml/badge.svg)](https://github.com/cvilsmeier/sqinn/actions/workflows/macos-arm64.yml)
-[![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue.svg)](http://unlicense.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/license/mit)
 
 
 > [!NOTE]
@@ -64,6 +64,7 @@ bin/sqinn test
 
 See also <https://github.com/cvilsmeier/sqinn/actions> for build actions for
 Linux, Windows and MacOS.
+See <https://github.com/cvilsmeier/sqinn/tree/master/.github/workflows> for the corresponding workflow files.
 
 
 
