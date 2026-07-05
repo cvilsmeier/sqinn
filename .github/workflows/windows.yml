@@ -2,14 +2,14 @@ name: Windows
 
 on:
   push:
-    branches: [ "master", "v1" ]
+    branches: [ "master" ]
 
 jobs:
   build:
     runs-on: windows-2022
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Setup MSVC
       uses: ilammy/msvc-dev-cmd@v1
@@ -28,7 +28,7 @@ jobs:
         echo "build done"
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: dist-windows-amd64
         path: dist

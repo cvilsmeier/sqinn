@@ -29,7 +29,7 @@ All function calls and the binary protocol used for sending request and
 receiving responses is described in [rfc.txt](rfc.txt).
 
 For the Go (Golang) language binding, see <https://github.com/cvilsmeier/sqinn-go>,
-for benchmarks, see <https://github.com/cvilsmeier/sqinn-go-bench>.
+for benchmarks, see <https://github.com/cvilsmeier/go-sqlite-bench>.
 
 
 
@@ -131,6 +131,10 @@ I give it away for free, so everybody can adjust it to his or her own needs.
 
 Changelog
 -------------------------------------------------------------------------------
+
+### v2.0.5
+
+- SQLite Version 3.53.3 (2026-06-26)
 
 ### v2.0.4
 
