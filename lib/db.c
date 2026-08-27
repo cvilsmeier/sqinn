@@ -309,6 +309,10 @@ static int sq_queryInt(sqlite3 *db, const char *sql) {
     return value;
 }
 
+static void testSqliteLibraryVersion() {
+    ASSERT_STR("3.53.4", SQLITE_VERSION);
+}
+
 static void testSqlite() {
     sqlite3 *db = NULL;
     sq_open(":memory:", &db);
@@ -512,6 +516,8 @@ static void testErrors() {
 }
 
 void testDb() {
+    LOG_INFO0("testDb testSqliteLibraryVersion");
+    testSqliteLibraryVersion();
     LOG_INFO0("testDb testSqlite");
     testSqlite();
     LOG_INFO0("testDb testSqliteStmtCaching");

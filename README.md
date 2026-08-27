@@ -77,7 +77,7 @@ programs. That said:
 
 ```
 $ sqinn
-sqinn v2.0.0 - SQLite over stdin/stdout.
+sqinn v2.0.6 - SQLite over stdin/stdout.
 
 Usage:
     sqinn <command> [options...]
@@ -131,6 +131,10 @@ I give it away for free, so everybody can adjust it to his or her own needs.
 
 Changelog
 -------------------------------------------------------------------------------
+
+### v2.0.6
+
+- SQLite Version 3.53.4 (2026-07-24)
 
 ### v2.0.5
 
