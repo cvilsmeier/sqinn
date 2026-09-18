@@ -151,6 +151,7 @@ double Reader_readDouble(Reader* this) {
     return v;
 }
 
+// Returns internal buffer that is valid until the next read call.
 const char* Reader_readString(Reader* this) {
     size_t len = 1;
     const char *p = Reader_readBlob(this, &len);
@@ -158,6 +159,7 @@ const char* Reader_readString(Reader* this) {
     return p;
 }
 
+// Returns internal buffer that is valid until the next read call.
 const char* Reader_readBlob(Reader* this, size_t *plen) {
     if(this->std) {
         _readNextFrameIfNeeded(this);
@@ -321,8 +323,10 @@ void Writer_writeString(Writer* this, const char* str) {
     Writer_writeBlob(this, str, len + 1);
 }
 
-void Writer_writeBlob(Writer* this, const char* data, size_t len) {
-    ASSERT(data);
+void Writer_writeBlob(Writer* this, const char* data, size_t len) {    
+    if (len != 0) {
+       ASSERT(data);
+    }
     ASSERT(len < MAX_LEN);
     _validateWriter(this);
     if (this->std) {
@@ -351,7 +355,9 @@ static void testWriteAndRead() {
     Writer_writeInt64(w, 0xF0E0D0C0B0A09080);  // 8 byte
     Writer_writeDouble(w, 128.5);              // 8 byte // double 128.5 = hex(40 60 10 00 00 00 00 00)
     Writer_writeString(w, "Alice");            // 4 byte + 5 data + 1 null-termination
-    Writer_writeBlob(w, "12345678", 8);            // 4 byte + 8 byte data
+    Writer_writeBlob(w, "12345678", 8);        // 4 byte + 8 byte data
+    Writer_writeBlob(w, "", 0);                // empty blob
+    Writer_writeBlob(w, NULL, 0);              // empty blob
     // check data
     int i=0;
     // Writer_writeByte(w, 0);
@@ -422,6 +428,16 @@ static void testWriteAndRead() {
     ASSERT_INT('7', (unsigned char)buf[i++]);
     ASSERT_INT('8', (unsigned char)buf[i++]);
     ASSERT_INT(57,i);
+    // Writer_writeBlob(w, "", 0);                // empty blob
+    ASSERT_INT(0x00, (unsigned char)buf[i++]);
+    ASSERT_INT(0x00, (unsigned char)buf[i++]);
+    ASSERT_INT(0x00, (unsigned char)buf[i++]);
+    ASSERT_INT(0x00, (unsigned char)buf[i++]);
+    // Writer_writeBlob(w, NULL, 0);              // empty blob
+    ASSERT_INT(0x00, (unsigned char)buf[i++]);
+    ASSERT_INT(0x00, (unsigned char)buf[i++]);
+    ASSERT_INT(0x00, (unsigned char)buf[i++]);
+    ASSERT_INT(0x00, (unsigned char)buf[i++]);
     // read
     Reader *r = newMemReader(buf, sizeof(buf));
     ASSERT_INT(0, Reader_readByte(r));

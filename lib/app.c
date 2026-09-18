@@ -640,9 +640,74 @@ static void testValueTypesAndErrors() {
     Db_free(db);
 }
 
+static void testBlobs() {
+    // setup
+    Db *db = newDb(":memory:", FALSE);
+    char buf[4 * 1024];
+    memset(buf, 255, sizeof(buf));
+    Reader *r = newMemReader(buf, sizeof(buf));
+    Writer *w = newMemWriter(buf, sizeof(buf));
+    App *app = newApp(db, r, w);
+    {
+        Writer_writeByte(w, FC_EXEC);
+        Writer_writeString(w, "CREATE TABLE images(data BLOB NOT NULL)");
+        Writer_writeInt32(w, 1);  // 1 iteration
+        Writer_writeInt32(w, 0);  // 0 params per iteration
+        //
+        ASSERT(App_step(app));
+        //
+        ASSERT_INT(1, Reader_readByte(r)); // ok
+    }
+    {
+        Writer_writeByte(w, FC_EXEC);
+        Writer_writeString(w, "INSERT INTO images(data) VALUES (?)");
+        Writer_writeInt32(w, 1);       // 1 iteration
+        Writer_writeInt32(w, 1);       // 1 param per iteration
+        Writer_writeByte(w, VT_BLOB);  // iter 0 param 0 type
+        Writer_writeBlob(w, "", 0);    // iter 0 param 0 value
+        //
+        ASSERT(App_step(app));
+        //
+        ASSERT_INT(1, Reader_readByte(r));              // ok
+    }
+    {
+        Writer_writeByte(w, FC_QUERY);
+        Writer_writeString(w, "SELECT data FROM images");
+        Writer_writeInt32(w, 0);        // 0 params
+        Writer_writeInt32(w, 1);        // 1 column
+        Writer_writeByte(w, VT_BLOB);  // columns[0].type
+        //
+        ASSERT(App_step(app));
+        //
+        ASSERT_INT(1, Reader_readByte(r));  // has row
+        {
+            ASSERT_INT(VT_BLOB, Reader_readByte(r));   // value type
+            size_t len;
+            Reader_readBlob(r, &len);
+            ASSERT_INT(0, len);
+        }
+        ASSERT_INT(0, Reader_readByte(r));              // no more rows
+        ASSERT_INT(1, Reader_readByte(r));              // ok
+    }
+    {
+        Writer_writeByte(w, FC_QUIT);
+        //
+        ASSERT(!App_step(app));
+        //
+        ASSERT_INT(1, Reader_readByte(r));              // ok
+    }
+    // free
+    App_free(app);
+    Writer_free(w);
+    Reader_free(r);
+    Db_free(db);
+}
+
 void testApp() {
     LOG_INFO0("testApp testBasic");
     testBasic();
     LOG_INFO0("testApp testValueTypesAndErrors");
     testValueTypesAndErrors();
+    LOG_INFO0("testApp testBlobs");
+    testBlobs();
 }

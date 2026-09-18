@@ -63,9 +63,10 @@ Test it with:
 bin/sqinn test
 ```
 
-See also <https://github.com/cvilsmeier/sqinn/actions> for build actions for
-Linux, Windows and MacOS.
-See <https://github.com/cvilsmeier/sqinn/tree/master/.github/workflows> for the corresponding workflow files.
+See also <https://github.com/cvilsmeier/sqinn/actions>
+for build actions for Linux, Windows and MacOS.
+See <https://github.com/cvilsmeier/sqinn/tree/master/.github/workflows>
+for the corresponding workflow files.
 
 
 
@@ -77,7 +78,7 @@ programs. That said:
 
 ```
 $ sqinn
-sqinn v2.0.6 - SQLite over stdin/stdout.
+sqinn v2.0.7 - SQLite over stdin/stdout.
 
 Usage:
     sqinn <command> [options...]
@@ -131,6 +132,10 @@ I give it away for free, so everybody can adjust it to his or her own needs.
 
 Changelog
 -------------------------------------------------------------------------------
+
+### v2.0.7
+
+- Bugfix: handle empty blobs correctly
 
 ### v2.0.6
 
