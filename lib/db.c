@@ -310,7 +310,7 @@ static int sq_queryInt(sqlite3 *db, const char *sql) {
 }
 
 static void testSqliteLibraryVersion() {
-    ASSERT_STR("3.53.4", SQLITE_VERSION);
+    ASSERT_STR("3.54.0", SQLITE_VERSION);
 }
 
 static void testSqlite() {
